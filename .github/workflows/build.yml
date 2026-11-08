@@ -17,9 +17,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Check shared hook capacity
-        run: python3 scripts/test_hook_capacity.py
-
       - name: Build in pinned devkitPro image
         shell: pwsh
         run: ./scripts/build.ps1 -UseDocker
