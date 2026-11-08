@@ -19,6 +19,20 @@
  * StageScene, each bound to its own controller port.
  */
 
+/* Target game version: 100 = Super Mario Odyssey 1.0.0 (default), 130 = 1.3.0.
+ * Set via OCOOP_GAME in config.mk / `make OCOOP_GAME=130`. */
+#ifndef OCOOP_GAME
+#define OCOOP_GAME 100
+#endif
+#if OCOOP_GAME != 100 && OCOOP_GAME != 130
+#error "OCOOP_GAME must be 100 (SMO 1.0.0) or 130 (SMO 1.3.0)"
+#endif
+
+#if OCOOP_GAME == 130
+#include "program/offsets_v130.hpp"
+#define OCOOP_GAME_VERSION_STRING "v1.3.0"
+#else
+#define OCOOP_GAME_VERSION_STRING "v1.0.0"
 /* NSO .text offsets for Odyssey 1.0.0, from OdysseyDecomp data/file_list.yml.
  * Ghidra VA = NSO offset + 0x7100000000. */
 namespace PatchOffsets {
@@ -461,7 +475,11 @@ namespace PatchOffsets {
      * "BindStart sent but judge rejects". AlIsMsgBindStart/AlIsMsgBindInit
      * already exist above; only FloorTouch is new (file_list.yml Matching). */
     constexpr ptrdiff_t AlIsMsgPlayerFloorTouch = 0x8f6ea4;             // al::isMsgPlayerFloorTouch(const al::SensorMsg*) — file_list.yml (136 B, Matching)
+    /* PlayerInfo field offsets (PlayerActorBase::getPlayerInfo, vtable +0x1a8). */
+    constexpr ptrdiff_t PlayerInfoFormSensorCollisionArranger = 0x78;  // rs::getPlayerHeadPos: ldr x0,[x0,#0x78] @0x56f640
+    constexpr ptrdiff_t PlayerInfoInput = 0x80;                        // PlayerInfo::mInput
 }
+#endif  // OCOOP_GAME
 
  
 #define PATCH_0001_ENABLED 1
@@ -722,8 +740,48 @@ static bool IsPauseMenuSeparatePlayReturn(uintptr_t lr) {
            nso == (uintptr_t)PatchOffsets::PauseMenuSetNormalSeparateReturn ||
            nso == (uintptr_t)PatchOffsets::PauseMenuWaitLabelSeparateReturn ||
            nso == (uintptr_t)PatchOffsets::PauseMenuWaitGuardSeparateReturn ||
+#if OCOOP_GAME == 130
+           /* 1.3.0 added two more pause-menu isSeparatePlay queries. */
+           nso == (uintptr_t)PatchOffsets::PauseMenuWaitSelectSeparateReturn ||
+           nso == (uintptr_t)PatchOffsets::PauseMenuAfterTitleSeparateReturn ||
+#endif
            nso == (uintptr_t)PatchOffsets::PauseMenuWaitBranchSeparateReturn;
 }
+
+#if OCOOP_GAME == 130
+/* GameDataFunction::restartStage / GameDataFile::restartStage were dead code in
+ * 1.0.0 (only this mod called them) and are gone from 1.3.0. This replays the
+ * body 1.3.0 still inlines at the end of GameDataFile::missAndRestartStage
+ * (0x4c95e4..0x4c9658), which is the 1.0.0 restartStage body with 1.3.0 field
+ * offsets plus one new guard byte. */
+static void RestartStageV130(void* holder) {
+    const uintptr_t base = (uintptr_t)exl::util::modules::GetTargetOffset(0);
+    const uintptr_t file =
+        *(const uintptr_t*)((uintptr_t)holder + PatchOffsets::GameDataHolderFile);
+    *(unsigned char*)(file + PatchOffsets::GameDataFileRestartFlag) = 0;
+
+    const char nullChar =
+        **(const char* const*)(base + PatchOffsets::SeadNullCharGotSlot);
+    if (**(const char* const*)(file + PatchOffsets::GameDataFileStageNameA) == nullChar)
+        return;
+    **(char**)(file + PatchOffsets::GameDataFileStageNameB) = nullChar;
+    **(char**)(file + PatchOffsets::GameDataFileStageNameC) = nullChar;
+
+    const uintptr_t fileHolder =
+        *(const uintptr_t*)(file + PatchOffsets::GameDataFileHolder);
+    if (*(const unsigned char*)(fileHolder + PatchOffsets::GameDataHolderRestartGuard) != 0)
+        return;
+
+    void* str = (void*)(file + PatchOffsets::GameDataFileRestartString);
+    auto slot = *(void (**)(void*))(*(uintptr_t*)str + 0x18);
+    slot(str);
+
+    auto format = reinterpret_cast<void (*)(void*, const char*, ...)>(
+        base + PatchOffsets::SeadBufferedSafeStringFormat);
+    format((void*)(file + PatchOffsets::GameDataFileRestartDest), "%s",
+           *(const char* const*)(file + PatchOffsets::GameDataFileRestartSource));
+}
+#endif
 }
 #endif
 #define PATCH_0016_FALL_TIMEOUT_FRAMES 120
@@ -3456,6 +3514,32 @@ HOOK_DEFINE_INLINE(Patch0001SpawnP2) {
 
         *(int*)(patch0001::sPiiCopy + 0x10) = p2port;
 
+        /* Spawn P2 beside P1 instead of inside it. PlayerInitInfo holds the
+         * start pose as trans (Vector3f) at +0x28 and quat (x,y,z,w) at +0x34
+         * (rs::initPlayerActorInfo reads exactly these; identical in 1.0.0 and
+         * 1.3.0). Shift along P1's local X axis = first rotation-matrix column,
+         * so the offset is sideways relative to P1's facing and respects
+         * non-default gravity. */
+        {
+            const float offset = ocoop::config::Get().p2SpawnOffset;
+            if (offset != 0.0f) {
+                float* trans = (float*)(patch0001::sPiiCopy + 0x28);
+                const float* q = (const float*)(patch0001::sPiiCopy + 0x34);
+                const float x = q[0], y = q[1], z = q[2], w = q[3];
+                float side[3] = {1.0f - 2.0f * (y * y + z * z),
+                                 2.0f * (x * y + w * z),
+                                 2.0f * (x * z - w * y)};
+                const float len2 = side[0] * side[0] + side[1] * side[1] + side[2] * side[2];
+                if (len2 > 0.25f && len2 < 4.0f) {  /* reject a garbage quat */
+                    trans[0] += side[0] * offset;
+                    trans[1] += side[1] * offset;
+                    trans[2] += side[2] * offset;
+                    Logging.Log("[OCoop] PATCH-0001 B: P2 spawn offset %.0f -> (%.0f,%.0f,%.0f)",
+                                offset, trans[0], trans[1], trans[2]);
+                }
+            }
+        }
+
 #if PATCH_0001_P2_COSTUME_ENABLED
         /* Override P2's body/cap model names (PlayerInitInfo +0x18/+0x20).
          * getInitPlayerModelName/getInitCapTypeName return these pointers
@@ -4331,7 +4415,7 @@ HOOK_DEFINE_TRAMPOLINE(Patch0025CameraStickP2) {
         uintptr_t info = (uintptr_t)getPlayerInfo(p2);
         if (!IsPtr8(info))
             return;
-        uintptr_t input = *(uintptr_t*)(info + 0x80);  /* PlayerInfo::mInput */
+        uintptr_t input = *(uintptr_t*)(info + PatchOffsets::PlayerInfoInput);
         if (!IsPtr8(input))
             return;
         auto getStickCameraRaw =
@@ -5173,7 +5257,8 @@ HOOK_DEFINE_TRAMPOLINE(Patch0013CapReturnOwner) {
                         reinterpret_cast<void* (*)(const void*)>(*(uintptr_t*)(vt + 0x1a8));
                     uintptr_t info = (uintptr_t)getPlayerInfo((const void*)player);
                     if (IsPtr8(info)) {
-                        uintptr_t arranger = *(uintptr_t*)(info + 0x78);
+                        uintptr_t arranger = *(uintptr_t*)(
+                            info + PatchOffsets::PlayerInfoFormSensorCollisionArranger);
                         if (IsPtr8(arranger)) {
                             auto getHeadPos =
                                 OcoopFn<const float* (*)(const void*)>(PatchOffsets::ArrangerGetHeadPos);
@@ -5209,10 +5294,19 @@ HOOK_DEFINE_TRAMPOLINE(Patch0048P2MapOpenTrigger) {
         if (p1Port < 0 || p2Port < 0)
             return false;
 
+#if OCOOP_GAME == 130
+        /* 1.3.0's helper takes (holder, bool); rs::isTriggerMapOpen tail-calls
+         * it with w1=1 (0x51e694..0x51e6a0), so mirror that native call. */
+        auto dualPortTrigger =
+            OcoopFn<bool (*)(const void*, bool)>(PatchOffsets::RsMapOpenDualPortTrigger);
+        if (!dualPortTrigger(sceneObjHolder, true))
+            return false;
+#else
         auto dualPortTrigger =
             OcoopFn<bool (*)()>(PatchOffsets::RsMapOpenDualPortTrigger);
         if (!dualPortTrigger())
             return false;
+#endif
 
         static unsigned logged = 0;
         if (logged < 20) {
@@ -5619,9 +5713,13 @@ HOOK_DEFINE_TRAMPOLINE(Patch0052RequestModeAndRestart) {
         }
 
         patch0052::sTwoPlayer = enabled;
+#if OCOOP_GAME == 130
+        patch0052::RestartStageV130(holder);
+#else
         auto restartStage =
             OcoopFn<void (*)(void*)>(PatchOffsets::GameDataRestartStage);
         restartStage(holder);
+#endif
         patch0052::sKillPending = true;
         Logging.Log("[OCoop] PATCH-0052 request call=%u mode=%s nativeApplied=0 restartReturned=1 killPending=1",
                     patch0052::sRequests, enabled ? "2P" : "1P");
@@ -5675,7 +5773,7 @@ extern "C" void exl_main(void* x0, void* x1) {
     exl::hook::Initialize();
     exl::patch::impl::InitPatcherImpl();
     ocoop::diagnostics::Initialize();
-    Logging.Log("[OCoop] init (OCoopMod, target 0100000000010000 v1.0.0)");
+    Logging.Log("[OCoop] init (OCoopMod, target 0100000000010000 " OCOOP_GAME_VERSION_STRING ")");
 
 #if OCOOP_DEV_DIAGNOSTICS
 #include "program/diagnostics_private/fragment_080.inc"

@@ -10,4 +10,7 @@ C_FLAGS := -g0 -ffile-prefix-map=$(PWD)=/workspace/exlaunch -fdebug-prefix-map=$
 ifneq ($(strip $(WINDOWS_PWD)),)
 C_FLAGS += -ffile-prefix-map=$(WINDOWS_PWD)=/workspace/exlaunch -fdebug-prefix-map=$(WINDOWS_PWD)=/workspace/exlaunch -fmacro-prefix-map=$(WINDOWS_PWD)=/workspace/exlaunch
 endif
+# Target game version: 100 = SMO 1.0.0 (default), 130 = SMO 1.3.0.
+OCOOP_GAME ?= 100
+C_FLAGS += -DOCOOP_GAME=$(OCOOP_GAME)
 CXX_FLAGS :=

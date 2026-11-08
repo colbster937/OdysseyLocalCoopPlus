@@ -29,6 +29,10 @@ struct Settings {
     int moonRaceTarget;
     float competitionHudX;
     float competitionHudY;
+
+    /* Sideways distance (game units) P2 spawns from P1, along P1's local X axis.
+     * 0 = spawn on top of P1 (previous behavior); negative = other side. */
+    float p2SpawnOffset;
 };
 
 const Settings& Get();

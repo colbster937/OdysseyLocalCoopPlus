@@ -2,6 +2,8 @@ param(
     [string]$DevkitProRoot,
     [string]$ExlaunchSource,
     [int]$Jobs = 8,
+    [ValidateSet("1.0.0", "1.3.0")]
+    [string]$GameVersion = "1.0.0",
     [switch]$UseDocker,
     [string]$DockerImage = "devkitpro/devkita64@sha256:1fc388c3a0d34bd2045a6dadcb1020e069d5f876a187fd705de14b4440c00282"
 )
@@ -19,6 +21,7 @@ $BuildOutputRoot = Join-Path $ArtifactRoot "build"
 $BuildLog = Join-Path $BuildOutputRoot "build.log"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $RunningOnWindows = ($env:OS -eq "Windows_NT")
+$OcoopGame = $(if ($GameVersion -eq "1.3.0") { "130" } else { "100" })
 $ReleaseAsFlags = "-g0 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIC -fvisibility=hidden"
 
 function Assert-ChildPath {
@@ -114,7 +117,7 @@ if ($UseDocker) {
     $mount = "type=bind,source=$RepoRoot,target=/workspace"
     Invoke-Checked -FilePath "docker" -Arguments @(
         "run", "--rm", "--mount", $mount, "--workdir", "/workspace/artifacts/build-work/exlaunch",
-        $DockerImage, "bash", "-lc", "make clean && make -j$Jobs ASFLAGS='$ReleaseAsFlags'"
+        $DockerImage, "bash", "-lc", "make clean && make -j$Jobs OCOOP_GAME=$OcoopGame ASFLAGS='$ReleaseAsFlags'"
     ) -Failure "Containerized ExLaunch build failed"
     $toolchainDescription = $DockerImage
 } else {
@@ -147,7 +150,7 @@ if ($UseDocker) {
     try {
         $env:DEVKITPRO = $nativeDevkitRoot
         Invoke-Checked -FilePath "make" -Arguments @("-C", $WorkRoot, "clean") -Failure "ExLaunch clean failed"
-        Invoke-Checked -FilePath "make" -Arguments @("-C", $WorkRoot, "-j$Jobs", "ASFLAGS=$ReleaseAsFlags") -Failure "ExLaunch build failed"
+        Invoke-Checked -FilePath "make" -Arguments @("-C", $WorkRoot, "-j$Jobs", "OCOOP_GAME=$OcoopGame", "ASFLAGS=$ReleaseAsFlags") -Failure "ExLaunch build failed"
     } finally {
         $env:DEVKITPRO = $previousDevkitPro
     }
@@ -171,6 +174,7 @@ $report = [ordered]@{
     schema_version = 1
     status = "PASS"
     version = $Version
+    game_version = $GameVersion
     program_id = $ProgramId
     source_fingerprint_sha256 = Get-SourceFingerprint
     exlaunch_commit = $PinnedExlaunchCommit

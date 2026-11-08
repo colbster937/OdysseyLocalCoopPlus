@@ -20,6 +20,7 @@ Settings sSettings = {
     3000.0f, 1.5f, 10.0f, true,
     true, 10, -560.0f, 260.0f, -64.0f,
     true, 3, 0.0f, 0.0f,
+    120.0f,
 };
 
 Settings Defaults() {
@@ -30,6 +31,7 @@ Settings Defaults() {
         3000.0f, 1.5f, 10.0f, true,
         true, 10, -560.0f, 260.0f, -64.0f,
         true, 3, 0.0f, 0.0f,
+        120.0f,
     };
 }
 
@@ -182,6 +184,8 @@ void ParseConfigText(const char* text, size_t length, Settings* settings) {
             settings->competitionHudX = value;
         } else if (KeyEquals(cur, keyEnd, "competition.hud_y")) {
             settings->competitionHudY = value;
+        } else if (KeyEquals(cur, keyEnd, "player.p2.spawn_offset")) {
+            settings->p2SpawnOffset = value;
         }
     }
 }
@@ -198,6 +202,7 @@ void Apply(Settings settings) {
     settings.cameraLerp = Clamp(settings.cameraLerp, 0.001f, 1.0f);
     settings.respawnDelaySeconds = Clamp(settings.respawnDelaySeconds, 0.0f, 60.0f);
     settings.bubbleDistance = Clamp(settings.bubbleDistance, 100.0f, 20000.0f);
+    settings.p2SpawnOffset = Clamp(settings.p2SpawnOffset, -1000.0f, 1000.0f);
     settings.bubbleHoldSeconds = Clamp(settings.bubbleHoldSeconds, 0.0f, 10.0f);
     settings.bubbleCooldownSeconds = Clamp(settings.bubbleCooldownSeconds, 0.0f, 60.0f);
     if (settings.coinRaceTarget < 1)
@@ -225,9 +230,9 @@ void LogSettings(const char* state) {
                 state, sSettings.cameraBaseZoom, sSettings.cameraMaxZoom,
                 sSettings.cameraSeparationStart, sSettings.cameraSeparationFull,
                 sSettings.cameraLerp);
-    Logging.Log("[OCoop] CONFIG-0001 %s p2 body=\"%s\" cap=\"%s\" respawn=%.2fs",
+    Logging.Log("[OCoop] CONFIG-0001 %s p2 body=\"%s\" cap=\"%s\" respawn=%.2fs spawn-offset=%.0f",
                 state, sSettings.p2Body, sSettings.p2Cap,
-                sSettings.respawnDelaySeconds);
+                sSettings.respawnDelaySeconds, sSettings.p2SpawnOffset);
     Logging.Log("[OCoop] CONFIG-0001 %s bubble distance=%.0f hold=%.2fs cooldown=%.2fs water-ground=%d path=%s",
                 state, sSettings.bubbleDistance, sSettings.bubbleHoldSeconds,
                 sSettings.bubbleCooldownSeconds,
