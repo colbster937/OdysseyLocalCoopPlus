@@ -38,7 +38,7 @@ The competition HUD is included in the normal release ZIP and requires no separa
 - Two controllers configured as separate players before entering a stage.
 - The `OdysseyLocalCoop-v0.1.0-alpha.5.zip` release package.
 
-Start normally with P1, then select `Two Players` from Odyssey's pause menu. Connect the second controller when prompted. Select `One Player` from the same menu to return to solo play.
+Start normally with P1, then select `Two Players` from Odyssey's pause menu. Choose `2 Players`, `3 Players`, or `4 Players` in the new dialog (up/down to choose, A to confirm, B to cancel), then connect controllers when prompted. The choice applies until the game exits and survives stage changes. Select `One Player` from the pause menu to return to solo play; entering co-op again lets you choose a different count.
 
 ## Install on Ryujinx
 

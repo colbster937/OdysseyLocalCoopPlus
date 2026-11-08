@@ -40,6 +40,23 @@ namespace PatchOffsets {
     constexpr ptrdiff_t PauseMenuWaitBranchSeparateReturn = 0x496528; // 1.0.0 0x4eaf08 — tbz w0 context (BL#4 in 1.3.0)
     constexpr ptrdiff_t PauseMenuExeAppear = 0x495e60; // 1.0.0 0x4ea8b0 — anchor match [unused]
     constexpr ptrdiff_t PauseMenuSetNormal = 0x496030; // 1.0.0 0x4eaa7c — anchor match [unused]
+    /* In-game co-op count chooser: native pause-menu confirmation window. */
+    constexpr ptrdiff_t PauseMenuExeWait = 0x496340; // 1.0.0: 0x4ead40
+    constexpr ptrdiff_t MenuSelectIsDecideSeparatePlay = 0x1d6f20; // 1.0.0: 0x1f93d8
+    constexpr ptrdiff_t MenuSelectAppearWait = 0x1d6b00; // 1.0.0: 0x1f9168
+    constexpr ptrdiff_t WindowConfirmSetListNum = 0x70bf30; // 1.0.0: 0x99b404
+    constexpr ptrdiff_t WindowConfirmSetTxtMessage = 0x70bed0; // 1.0.0: 0x99b3b0
+    constexpr ptrdiff_t WindowConfirmSetTxtList = 0x70bef0; // 1.0.0: 0x99b3cc
+    constexpr ptrdiff_t WindowConfirmAppear = 0x70bf7c; // 1.0.0: 0x99b434
+    constexpr ptrdiff_t WindowConfirmTryUp = 0x70c2f0; // 1.0.0: 0x99b870
+    constexpr ptrdiff_t WindowConfirmTryDown = 0x70c380; // 1.0.0: 0x99b8d8
+    constexpr ptrdiff_t WindowConfirmTryDecide = 0x70c410; // 1.0.0: 0x99b944
+    constexpr ptrdiff_t WindowConfirmTryCancel = 0x70c570; // 1.0.0: 0x99ba54
+    constexpr ptrdiff_t AlIsDeadLayout = 0x630920; // 1.0.0: 0x8b1f00
+    constexpr ptrdiff_t RsIsTriggerUiCancel = 0x51d280; // 1.0.0: 0x575c40
+    constexpr ptrdiff_t RsIsTriggerUiUp = 0x51d530; // 1.0.0: 0x575ee0
+    constexpr ptrdiff_t RsIsTriggerUiDown = 0x51d5c0; // 1.0.0: 0x575f5c
+    constexpr ptrdiff_t PauseMenuWindowConfirm = 0xc0; // 1.0.0: 0xb8
     constexpr ptrdiff_t PauseMenuCodeEnd = 0x497340; // 1.0.0 0x4ebb30 — WEAK (score 0.82) - unused, unverified [unused]
     constexpr ptrdiff_t RequestGraphicsPresetAndCubeMapPause = 0x479a90; // 1.0.0 0x4d32c8 — anchor match [unused]
     constexpr ptrdiff_t RequestUpdateMaterialInfo = 0x5e31c0; // 1.0.0 0x875f34 — anchor match [unused]
@@ -292,4 +309,40 @@ namespace PatchOffsets {
      * getPlayerInfo vcall). */
     constexpr ptrdiff_t PlayerInfoFormSensorCollisionArranger = 0x80;  // 1.0.0: 0x78 (rs::getPlayerHeadPos 0x5139c8 ldr x0,[x0,#0x80])
     constexpr ptrdiff_t PlayerInfoInput = 0x88;                        // 1.0.0: 0x80 (13/13 votes)
+
+    /* PATCH-0053: boot-time controller creation. 1.3.0 unrolls the two-iteration
+     * NpadController loop (0x624724 / 0x6248a4); each callee below is the one
+     * that unrolled block calls, in the same order as the 1.0.0 loop body. */
+    constexpr ptrdiff_t GameFrameworkCreateControllerMgr = 0x6244f0;   // 1.0.0: 0x8a5f0c
+    constexpr ptrdiff_t NinJoyNpadDeviceSetNpadIdUpdateNum = 0x93fdd0; // 1.0.0: 0x72f0bc (cmp w1,#8; str w1,[x0,#0x28])
+    constexpr ptrdiff_t NinJoyNpadDeviceSetAssignmentModeDual = 0x93fe00; // 1.0.0: 0x72f160 (0x6249e8)
+    constexpr ptrdiff_t NpadControllerCtor = 0x5d63c0;                 // 1.0.0: 0x8668a0
+    constexpr ptrdiff_t NpadControllerSetIndexMode = 0x5d64a0;         // 1.0.0: 0x866978
+    constexpr ptrdiff_t JoyPadAccelerometerAddonCtor = 0x6260d0;       // 1.0.0: 0xa4d69c (0x6248d4)
+    constexpr ptrdiff_t PadGyroAddonCtor = 0x5d70d0;                   // 1.0.0: 0x867524
+    constexpr ptrdiff_t PadUiKeyInputAddonCtor = 0x625dd0;             // 1.0.0: 0xa4ddc4 (0x6249c0)
+    constexpr ptrdiff_t SeadListNodeInsertFront = 0x93eda0;            // 1.0.0: 0x72d728
+    constexpr ptrdiff_t SeadControllerMgrInstanceGot = 0x13665e0;      // 1.0.0: 0x1e55028 (al::getPlayerControllerPort)
+    constexpr ptrdiff_t GameOperatorNew = 0x93e810;                    // exported _Znwm (1.0.0: 0x72cbd8)
+    constexpr ptrdiff_t WaveVibrationHolderFindPlayablePlayer = 0x5cf030; // 1.0.0: 0x85ba58 (same 45-slot loop, calls isPlaying 0x5cdec0)
+    constexpr ptrdiff_t StageSceneLayoutUpdateLifeCounter = 0x1e80c0;  // 1.0.0: 0x20d2f4 (anchor match)
+    constexpr ptrdiff_t CounterLifeCtrlCalcLayoutTransByPlayer = 0x1ca390; // 1.0.0: 0x1e7f88 (same prologue; +0x30/+0x3c init trans)
+    constexpr ptrdiff_t RsIsKidsModeLayout = 0x4ddb90;                 // 1.0.0: 0x53232c rs::isKidsMode(const al::LayoutActor*)
+    constexpr ptrdiff_t AlStartLayoutAction = 0x62f120;                // 1.0.0: 0x8b0b0c al::startAction(IUseLayoutAction*, const char*, const char*)
+
+    /* PATCH-0054: staggered stage entrances. */
+    constexpr ptrdiff_t RsRequestBindPlayer = 0x515f60;               // 1.0.0: 0x571c54 (player 0, info+0x20 keeper, b 0x3d0d20)
+    constexpr ptrdiff_t PlayerBindKeeperAppendBindRequest = 0x3d0d20;  // 1.0.0: 0x42dd10
+    constexpr ptrdiff_t RsEndBindAndPuppetNull = 0x5128e0;            // 1.0.0: 0x56e6d0 (identical body)
+    constexpr ptrdiff_t RsEndBindOnGroundAndPuppetNull = 0x512910;    // 1.0.0: 0x56e700
+    constexpr ptrdiff_t AlHideModelIfShow = 0x662dd0;                 // 1.0.0: 0x8df65c
+    constexpr ptrdiff_t AlShowModelIfHide = 0x662d20;                 // 1.0.0: 0x8df5c4
+    constexpr ptrdiff_t AlGetCurrentNerve = 0x6c7ca0;                 // 1.0.0: 0x959cac (identical body)
+    constexpr ptrdiff_t PlayerInfoBindKeeper = 0x20;                  // 1.0.0: 0x18 (PlayerInfo +8 shift; requestBindPlayer ldr [x0,#0x20])
+    constexpr ptrdiff_t RsHidePuppet = 0x512dc0;                      // 1.0.0: 0x56eb70
+    constexpr ptrdiff_t AlStartActorAction = 0x656c30;               // 1.0.0: 0x8d2d00; DoorWarpStageChange Open/Close/CloseWait call targets
+    constexpr ptrdiff_t RsShowPuppet = 0x512dd0;                      // 1.0.0: 0x56eb7c
+    constexpr ptrdiff_t PlayerHakoniwaStartPlayerPuppet = 0x3c48e0;   // 1.0.0: 0x421c20
+    constexpr ptrdiff_t VtableDokanStageChange = 0x1232928;           // 1.0.0: 0x1cef6b0 (RTTI 16DokanStageChange, offset-to-top 0)
+    constexpr ptrdiff_t VtableDoorWarpStageChange = 0x1234fc0;        // 1.0.0: 0x1cf1d60 (RTTI 19DoorWarpStageChange, offset-to-top 0)
 }

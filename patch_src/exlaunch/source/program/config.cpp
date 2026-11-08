@@ -13,6 +13,8 @@ constexpr const char* kConfigPath = "content:/OCoop/settings.ini";
 constexpr size_t kConfigMaxBytes = 4096;
 constexpr unsigned kGameTicksPerSecond = 60;
 
+int sSessionPlayerCount = 0;  // in-game choice survives scene/HUD config reloads
+
 Settings sSettings = {
     1.12f, 1.65f, 500.0f, 2500.0f, 0.05f,
     "MarioColorLuigi", "MarioColorLuigi",
@@ -21,6 +23,8 @@ Settings sSettings = {
     true, 10, -560.0f, 260.0f, -64.0f,
     true, 3, 0.0f, 0.0f,
     120.0f,
+    2, "MarioColorWario", "MarioColorWario", "MarioColorWaluigi", "MarioColorWaluigi",
+    true,
 };
 
 Settings Defaults() {
@@ -32,6 +36,8 @@ Settings Defaults() {
         true, 10, -560.0f, 260.0f, -64.0f,
         true, 3, 0.0f, 0.0f,
         120.0f,
+        2, "MarioColorWario", "MarioColorWario", "MarioColorWaluigi", "MarioColorWaluigi",
+        true,
     };
 }
 
@@ -144,6 +150,14 @@ void ParseConfigText(const char* text, size_t length, Settings* settings) {
             CopyString(settings->p2Body, sizeof(settings->p2Body), valueBegin, lineEnd);
         } else if (KeyEquals(cur, keyEnd, "player.p2.cap")) {
             CopyString(settings->p2Cap, sizeof(settings->p2Cap), valueBegin, lineEnd);
+        } else if (KeyEquals(cur, keyEnd, "player.p3.body")) {
+            CopyString(settings->p3Body, sizeof(settings->p3Body), valueBegin, lineEnd);
+        } else if (KeyEquals(cur, keyEnd, "player.p3.cap")) {
+            CopyString(settings->p3Cap, sizeof(settings->p3Cap), valueBegin, lineEnd);
+        } else if (KeyEquals(cur, keyEnd, "player.p4.body")) {
+            CopyString(settings->p4Body, sizeof(settings->p4Body), valueBegin, lineEnd);
+        } else if (KeyEquals(cur, keyEnd, "player.p4.cap")) {
+            CopyString(settings->p4Cap, sizeof(settings->p4Cap), valueBegin, lineEnd);
         } else if (!ParseFloat(valueBegin, lineEnd, &value)) {
             continue;
         } else if (KeyEquals(cur, keyEnd, "camera.zoom.base")) {
@@ -186,6 +200,10 @@ void ParseConfigText(const char* text, size_t length, Settings* settings) {
             settings->competitionHudY = value;
         } else if (KeyEquals(cur, keyEnd, "player.p2.spawn_offset")) {
             settings->p2SpawnOffset = value;
+        } else if (KeyEquals(cur, keyEnd, "player.count")) {
+            settings->playerCount = static_cast<int>(value);
+        } else if (KeyEquals(cur, keyEnd, "player.staggered_entrance")) {
+            settings->staggeredEntrance = value != 0.0f;
         }
     }
 }
@@ -203,6 +221,17 @@ void Apply(Settings settings) {
     settings.respawnDelaySeconds = Clamp(settings.respawnDelaySeconds, 0.0f, 60.0f);
     settings.bubbleDistance = Clamp(settings.bubbleDistance, 100.0f, 20000.0f);
     settings.p2SpawnOffset = Clamp(settings.p2SpawnOffset, -1000.0f, 1000.0f);
+    if (sSessionPlayerCount != 0)
+        settings.playerCount = sSessionPlayerCount;
+    if (settings.playerCount < 2)
+        settings.playerCount = 2;
+    if (settings.playerCount > kMaxPlayers)
+        settings.playerCount = kMaxPlayers;
+    /* The competition scoreboard only has P1/P2 panes. */
+    if (settings.playerCount > 2) {
+        settings.coinRaceEnabled = false;
+        settings.moonRaceEnabled = false;
+    }
     settings.bubbleHoldSeconds = Clamp(settings.bubbleHoldSeconds, 0.0f, 10.0f);
     settings.bubbleCooldownSeconds = Clamp(settings.bubbleCooldownSeconds, 0.0f, 60.0f);
     if (settings.coinRaceTarget < 1)
@@ -230,9 +259,12 @@ void LogSettings(const char* state) {
                 state, sSettings.cameraBaseZoom, sSettings.cameraMaxZoom,
                 sSettings.cameraSeparationStart, sSettings.cameraSeparationFull,
                 sSettings.cameraLerp);
-    Logging.Log("[OCoop] CONFIG-0001 %s p2 body=\"%s\" cap=\"%s\" respawn=%.2fs spawn-offset=%.0f",
-                state, sSettings.p2Body, sSettings.p2Cap,
+    Logging.Log("[OCoop] CONFIG-0001 %s players=%d p2 body=\"%s\" cap=\"%s\" respawn=%.2fs spawn-offset=%.0f",
+                state, sSettings.playerCount, sSettings.p2Body, sSettings.p2Cap,
                 sSettings.respawnDelaySeconds, sSettings.p2SpawnOffset);
+    if (sSettings.playerCount > 2)
+        Logging.Log("[OCoop] CONFIG-0001 %s p3 body=\"%s\" cap=\"%s\" p4 body=\"%s\" cap=\"%s\"",
+                    state, sSettings.p3Body, sSettings.p3Cap, sSettings.p4Body, sSettings.p4Cap);
     Logging.Log("[OCoop] CONFIG-0001 %s bubble distance=%.0f hold=%.2fs cooldown=%.2fs water-ground=%d path=%s",
                 state, sSettings.bubbleDistance, sSettings.bubbleHoldSeconds,
                 sSettings.bubbleCooldownSeconds,
@@ -245,8 +277,32 @@ void LogSettings(const char* state) {
 
 }  // namespace
 
+void SetSessionPlayerCount(int count) {
+    sSessionPlayerCount = count < 2 ? 2 : (count > kMaxPlayers ? kMaxPlayers : count);
+    Apply(sSettings);
+    Logging.Log("[OCoop] in-game player count=%d", sSettings.playerCount);
+}
+
 const Settings& Get() {
     return sSettings;
+}
+
+const char* PlayerBody(int slot) {
+    switch (slot) {
+    case 1: return sSettings.p2Body;
+    case 2: return sSettings.p3Body;
+    case 3: return sSettings.p4Body;
+    default: return "";
+    }
+}
+
+const char* PlayerCap(int slot) {
+    switch (slot) {
+    case 1: return sSettings.p2Cap;
+    case 2: return sSettings.p3Cap;
+    case 3: return sSettings.p4Cap;
+    default: return "";
+    }
 }
 
 void Reload() {

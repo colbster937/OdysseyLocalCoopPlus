@@ -80,6 +80,23 @@ namespace PatchOffsets {
     constexpr ptrdiff_t PauseMenuWaitBranchSeparateReturn = 0x4eaf08; // LR after rs::isSeparatePlay BL @ 0x4eaf04 in StageSceneStatePauseMenu::exeWait
     constexpr ptrdiff_t PauseMenuExeAppear = 0x4ea8b0;                // StageSceneStatePauseMenu::exeAppear() — Matching source + file_list.yml
     constexpr ptrdiff_t PauseMenuSetNormal = 0x4eaa7c;                // StageSceneStatePauseMenu::setNormal() — Matching source + file_list.yml
+    /* In-game co-op count chooser: native pause-menu confirmation window. */
+    constexpr ptrdiff_t PauseMenuExeWait = 0x4ead40;
+    constexpr ptrdiff_t MenuSelectIsDecideSeparatePlay = 0x1f93d8;
+    constexpr ptrdiff_t MenuSelectAppearWait = 0x1f9168;
+    constexpr ptrdiff_t WindowConfirmSetListNum = 0x99b404;
+    constexpr ptrdiff_t WindowConfirmSetTxtMessage = 0x99b3b0;
+    constexpr ptrdiff_t WindowConfirmSetTxtList = 0x99b3cc;
+    constexpr ptrdiff_t WindowConfirmAppear = 0x99b434;
+    constexpr ptrdiff_t WindowConfirmTryUp = 0x99b870;
+    constexpr ptrdiff_t WindowConfirmTryDown = 0x99b8d8;
+    constexpr ptrdiff_t WindowConfirmTryDecide = 0x99b944;
+    constexpr ptrdiff_t WindowConfirmTryCancel = 0x99ba54;
+    constexpr ptrdiff_t AlIsDeadLayout = 0x8b1f00;
+    constexpr ptrdiff_t RsIsTriggerUiCancel = 0x575c40;
+    constexpr ptrdiff_t RsIsTriggerUiUp = 0x575ee0;
+    constexpr ptrdiff_t RsIsTriggerUiDown = 0x575f5c;
+    constexpr ptrdiff_t PauseMenuWindowConfirm = 0xb8;
     constexpr ptrdiff_t PauseMenuCodeEnd = 0x4ebb30;                  // StageSceneStatePauseMenu dtor boundary — file_list.yml
     constexpr ptrdiff_t RequestGraphicsPresetAndCubeMapPause = 0x4d32c8; // rs::requestGraphicsPresetAndCubeMapPause(Scene const*) — file_list.yml + Ghidra 20260727-182505
     constexpr ptrdiff_t RequestUpdateMaterialInfo = 0x875f34;         // alGraphicsFunction::requestUpdateMaterialInfo(Scene*) — file_list.yml + Ghidra 20260727-182505
@@ -478,8 +495,48 @@ namespace PatchOffsets {
     /* PlayerInfo field offsets (PlayerActorBase::getPlayerInfo, vtable +0x1a8). */
     constexpr ptrdiff_t PlayerInfoFormSensorCollisionArranger = 0x78;  // rs::getPlayerHeadPos: ldr x0,[x0,#0x78] @0x56f640
     constexpr ptrdiff_t PlayerInfoInput = 0x80;                        // PlayerInfo::mInput
+    /* PATCH-0053: boot-time controller creation (al::GameFrameworkNx::createControllerMgr
+     * builds only two NpadControllers and polls two Npad ids). */
+    constexpr ptrdiff_t GameFrameworkCreateControllerMgr = 0x8a5f0c;  // al::GameFrameworkNx::createControllerMgr(sead::TaskBase*)
+    constexpr ptrdiff_t NinJoyNpadDeviceSetNpadIdUpdateNum = 0x72f0bc; // sead::NinJoyNpadDevice::setNpadIdUpdateNum(u32)
+    constexpr ptrdiff_t NinJoyNpadDeviceSetAssignmentModeDual = 0x72f160; // sead::NinJoyNpadDevice::setNpadJoyAssignmentModeDual(int)
+    constexpr ptrdiff_t NpadControllerCtor = 0x8668a0;                 // al::NpadController::NpadController(sead::ControllerMgr*), size 0x198
+    constexpr ptrdiff_t NpadControllerSetIndexMode = 0x866978;         // al::NpadController::setIndexControllerMode(int)
+    constexpr ptrdiff_t JoyPadAccelerometerAddonCtor = 0xa4d69c;       // (sead::Controller*, int), size 0x40
+    constexpr ptrdiff_t PadGyroAddonCtor = 0x867524;                   // (sead::Controller*, int), size 0x78
+    constexpr ptrdiff_t PadUiKeyInputAddonCtor = 0xa4ddc4;             // (sead::Controller*), size 0x38
+    constexpr ptrdiff_t SeadListNodeInsertFront = 0x72d728;            // sead::ListNode::insertFront_(ListNode*)
+    constexpr ptrdiff_t SeadControllerMgrInstanceGot = 0x1e55028;      // GOT slot -> sead::ControllerMgr::sInstance
+    constexpr ptrdiff_t GameOperatorNew = 0x72cbd8;                    // exported _Znwm (allocates from sead's current heap)
+    constexpr ptrdiff_t WaveVibrationHolderFindPlayablePlayer = 0x85ba58; // al::WaveVibrationHolder::findPlayableVibrationPlayer(int) const
+    constexpr ptrdiff_t StageSceneLayoutUpdateLifeCounter = 0x20d2f4;  // StageSceneLayout::updateLifeCounter() - every StageScene::control
+    constexpr ptrdiff_t CounterLifeCtrlCalcLayoutTransByPlayer = 0x1e7f88; // CounterLifeCtrl::calcLayoutTransByPlayer(sead::Vector3f*)
+    constexpr ptrdiff_t RsIsKidsModeLayout = 0x53232c;                 // rs::isKidsMode(const al::LayoutActor*)
+    constexpr ptrdiff_t AlStartLayoutAction = 0x8b0b0c;                // al::startAction(IUseLayoutAction*, const char*, const char*)
+    /* PATCH-0054: staggered stage entrances. */
+    constexpr ptrdiff_t RsRequestBindPlayer = 0x571c54;               // rs::requestBindPlayer(const al::LiveActor*, al::HitSensor*) - hardcodes player 0
+    constexpr ptrdiff_t PlayerBindKeeperAppendBindRequest = 0x42dd10;  // PlayerBindKeeper::appendBindRequest(al::HitSensor*)
+    constexpr ptrdiff_t RsEndBindAndPuppetNull = 0x56e6d0;            // rs::endBindAndPuppetNull(IUsePlayerPuppet**)
+    constexpr ptrdiff_t RsEndBindOnGroundAndPuppetNull = 0x56e700;    // rs::endBindOnGroundAndPuppetNull(IUsePlayerPuppet**)
+    constexpr ptrdiff_t AlHideModelIfShow = 0x8df65c;
+    constexpr ptrdiff_t AlShowModelIfHide = 0x8df5c4;
+    constexpr ptrdiff_t AlGetCurrentNerve = 0x959cac;                 // al::getCurrentNerve(const al::IUseNerve*)
+    constexpr ptrdiff_t PlayerInfoBindKeeper = 0x18;                  // rs::requestBindPlayer: ldr x0,[info,#0x18]
+    constexpr ptrdiff_t RsHidePuppet = 0x56eb70;                      // rs::hidePuppet(IUsePlayerPuppet*)
+    constexpr ptrdiff_t AlStartActorAction = 0x8d2d00;               // al::startAction(al::LiveActor*, const char*)
+    constexpr ptrdiff_t RsShowPuppet = 0x56eb7c;                      // rs::showPuppet(IUsePlayerPuppet*)
+    constexpr ptrdiff_t PlayerHakoniwaStartPlayerPuppet = 0x421c20;   // PlayerActorHakoniwa::startPlayerPuppet()
+    constexpr ptrdiff_t VtableDokanStageChange = 0x1cef6b0;           // _ZTV16DokanStageChange address point
+    constexpr ptrdiff_t VtableDoorWarpStageChange = 0x1cf1d60;        // _ZTV19DoorWarpStageChange address point
 }
 #endif  // OCOOP_GAME
+
+/* Co-op player count shared by every subsystem. Holder slot i = player i+1. */
+namespace coop {
+    constexpr int kMaxPlayers = ocoop::config::kMaxPlayers;
+    /* Players actually in the current StageScene (1 = solo). Set by PATCH-0001 B. */
+    static int sActivePlayers = 1;
+}
 
  
 #define PATCH_0001_ENABLED 1
@@ -784,6 +841,10 @@ static void RestartStageV130(void* holder) {
 #endif
 }
 #endif
+#if PATCH_0052_ENABLED
+namespace playercount { static void ResetPicker(); }
+#endif
+
 #define PATCH_0016_FALL_TIMEOUT_FRAMES 120
 /* v3: the to-3D direction CYCLES instead of stalling (run 20-22-39: three
  * startRecovery fires ~4 s apart in ONE Abyss episode): the 2D-form player
@@ -979,6 +1040,416 @@ static T OcoopFn(ptrdiff_t nso) {
     return reinterpret_cast<T>(exl::util::modules::GetTargetOffset(nso));
 }
 
+/* Allocate through the GAME's operator new (sead current heap), not the mod's
+ * 20 KB fake heap: objects created inside a scene constructor land on the
+ * scene heap and are released with the scene, exactly like the game's own. */
+static void* GameNew(size_t size) {
+    return reinterpret_cast<void* (*)(size_t)>(
+        exl::util::modules::GetTargetOffset(PatchOffsets::GameOperatorNew))(size);
+}
+
+/* PATCH-0054: staggered entrances. Every stage-start object (DokanStageChange,
+ * DoorWarpStageChange, PictureStageChange, PlayerStartObj, ...) calls
+ * rs::requestBindPlayer(host, hostSensor) from initAfterPlacement; that helper
+ * hardcodes player 0 and appends a bind request to its PlayerBindKeeper
+ * (PlayerInfo +0x18 / 1.3.0 +0x20). The host then puppets P1 through its exit
+ * and releases it with rs::endBind[OnGround]AndPuppetNull(&host->mPuppet).
+ * Replay: remember the host, its sensor and its nerve at request time, keep
+ * P2..Pn frozen (startDemoPuppetable) and hidden, and after each release reset
+ * the host's nerve and append the same bind request to the next player. A
+ * per-player timeout releases everyone in place so this can never soft-lock. */
+#define PATCH_0054_ENABLED 1
+#if PATCH_0054_ENABLED
+namespace entrance {
+    enum class Phase { Idle, Armed, WaitRelease, Requesting, Done };
+    static Phase sPhase = Phase::Idle;
+    static bool sInitWindow = false;     // StageScene::init between P2 spawn and first frame
+    static uintptr_t sHost = 0;
+    static void* sSensor = nullptr;
+    static const void* sNerve = nullptr;
+    static int sSlot = 0;                // player currently (or next) bound
+    static unsigned sFrames = 0;
+    static bool sReleased = false;
+    static bool sBound = false;          // current slot's player was grabbed
+    static int sDokanMode = -1;          // DokanStageChange: DokanInfo+0x10 at P1's request
+    static int sDoorStart = -1;          // DoorWarpStageChange: +0x182 at P1's request
+    static unsigned sClock = 0;          // scene-control ticks, never reset between turns
+    static unsigned sGrabTick = 0;
+    static bool sGrabObserved = false;
+    static bool sDoorHeldOpen = false;   // preserve the first Open action across replays
+    constexpr unsigned kFirstTimeoutFrames = 1200; // P1: includes the scene wipe-in (~20 s)
+    constexpr unsigned kTimeoutFrames = 360;       // P2..Pn (~6 s)
+
+    static void* PlayerAt(int slot) {
+        if (!IsPtr8(sHost))
+            return nullptr;
+        auto getPlayerActor = OcoopFn<void* (*)(const void*, int)>(PatchOffsets::AlGetPlayerActor);
+        void* p = getPlayerActor((const void*)sHost, slot);
+        return IsPtr8((uintptr_t)p) ? p : nullptr;
+    }
+
+    /* PlayerInfo -> PlayerBindKeeper (+0x18 / 1.3.0 +0x20). */
+    static uintptr_t BindKeeperOf(void* actor) {
+        if (!IsPtr8((uintptr_t)actor))
+            return 0;
+        uintptr_t vt = *(uintptr_t*)actor;
+        if (!IsPtr8(vt))
+            return 0;
+        auto getPlayerInfo = *(void* (**)(void*))(vt + 0x1a8);
+        uintptr_t info = (uintptr_t)getPlayerInfo(actor);
+        uintptr_t keeper = IsPtr8(info) ? *(uintptr_t*)(info + PatchOffsets::PlayerInfoBindKeeper) : 0;
+        return IsPtr8(keeper) ? keeper : 0;
+    }
+
+    /* The player's visible body is driven through its IUsePlayerPuppet
+     * (PlayerBindKeeper +0x18 in both builds) - the same interface entrance
+     * objects use (rs::hidePuppet / rs::showPuppet). Hiding the LiveActor's
+     * own model does not hide Mario. */
+    static void Hide(void* actor, bool hide) {
+        uintptr_t keeper = BindKeeperOf(actor);
+        if (!keeper)
+            return;
+        void* puppet = *(void**)(keeper + 0x18);
+        if (!IsPtr8((uintptr_t)puppet))
+            return;
+        auto f = OcoopFn<void (*)(void*)>(hide ? PatchOffsets::RsHidePuppet
+                                               : PatchOffsets::RsShowPuppet);
+        f(puppet);
+    }
+
+    static void Freeze(void* actor, bool freeze) {
+        if (!IsPtr8((uintptr_t)actor))
+            return;
+        auto f = OcoopFn<void (*)(void*)>(freeze ? PatchOffsets::PlayerHakoniwaStartDemoPuppetable
+                                                 : PatchOffsets::PlayerHakoniwaEndDemoPuppetable);
+        f(actor);
+    }
+
+    /* Release every extra player that has not had its turn yet, in place. */
+    static void ReleaseRemaining(int fromSlot, const char* why) {
+        for (int i = fromSlot; i < coop::sActivePlayers; i++) {
+            void* p = PlayerAt(i);
+            Freeze(p, false);
+            Hide(p, false);
+        }
+        if (fromSlot < coop::sActivePlayers)
+            Logging.Log("[OCoop] PATCH-0054 released P%d..P%d in place (%s)",
+                        fromSlot + 1, coop::sActivePlayers, why);
+        sPhase = Phase::Done;
+        // A timed-out turn may have suppressed Close already. Let the stock
+        // CloseOut nerve finish its cleanup instead of leaving an open door.
+        if (sDoorHeldOpen && IsPtr8(sHost)) {
+            sDoorHeldOpen = false;
+            OcoopFn<void (*)(void*, const char*)>(PatchOffsets::AlStartActorAction)(
+                (void*)sHost, "Close");
+        }
+    }
+
+    static bool IsDoorWarpStageChange() {
+        if (!IsPtr8(sHost))
+            return false;
+        const uintptr_t base = (uintptr_t)exl::util::modules::GetTargetOffset(0);
+        return *(const uintptr_t*)sHost == base + PatchOffsets::VtableDoorWarpStageChange;
+    }
+
+    /* Keep the door's visual Open action, while its stock nerves and puppet
+     * controller continue updating and releasing each player. CloseOut uses
+     * isActionEnd plus a null puppet to finish, so the completed Open action
+     * permits the same cleanup without replaying a close animation. */
+    static bool SuppressDoorAction(const void* actor, const char* action) {
+        if ((uintptr_t)actor != sHost || action == nullptr ||
+            sPhase == Phase::Idle || sPhase == Phase::Done ||
+            !IsDoorWarpStageChange())
+            return false;
+        auto equal = [](const char* a, const char* b) {
+            while (*a && *a == *b) { ++a; ++b; }
+            return *a == *b;
+        };
+        if (equal(action, "Open")) {
+            if (sDoorHeldOpen)
+                return true;  // replay the player exit, keep the door open
+            sDoorHeldOpen = true;
+        } else if (sDoorHeldOpen && equal(action, "Close")) {
+            if (sSlot + 1 < coop::sActivePlayers)
+                return true;
+            sDoorHeldOpen = false;  // the last player gets the normal close
+        } else if (sDoorHeldOpen && equal(action, "CloseWait")) {
+            return true;  // both Wait and WaitOut would snap the door closed
+        }
+        return false;
+    }
+
+    static bool IsDokanStageChange() {
+        if (!IsPtr8(sHost))
+            return false;
+        const uintptr_t base = (uintptr_t)exl::util::modules::GetTargetOffset(0);
+        return *(const uintptr_t*)sHost == base + PatchOffsets::VtableDokanStageChange;
+    }
+
+    static void Reset() {
+        sPhase = Phase::Idle;
+        sInitWindow = false;
+        sHost = 0;
+        sSensor = nullptr;
+        sNerve = nullptr;
+        sSlot = 0;
+        sFrames = 0;
+        sReleased = false;
+        sBound = false;
+        sDokanMode = -1;
+        sDoorStart = -1;
+        sClock = sGrabTick = 0;
+        sGrabObserved = false;
+        sDoorHeldOpen = false;
+    }
+
+    /* Called by PATCH-0001 B after the extra players are registered. */
+    static void BeginInitWindow() {
+        Reset();
+        sInitWindow = ocoop::config::Get().staggeredEntrance && coop::sActivePlayers > 1;
+    }
+
+    /* Queue the host's bind request on a player. PlayerBindKeeper keeps
+     * requests in a per-frame bindable-sensor list that
+     * executePreMovementNerveChange consumes (sendStartMsg) and clears, and
+     * only in normal player states, so this is re-issued every frame until
+     * the player is actually grabbed (startPlayerPuppet). */
+    static bool AppendRequest(int slot) {
+        uintptr_t keeper = BindKeeperOf(PlayerAt(slot));
+        if (!keeper)
+            return false;
+        auto append = OcoopFn<void (*)(void*, void*)>(PatchOffsets::PlayerBindKeeperAppendBindRequest);
+        append((void*)keeper, sSensor);
+        return true;
+    }
+
+    static void BeginRequest(int slot) {
+        void* p = PlayerAt(slot);
+        if (!p || !BindKeeperOf(p)) {
+            ReleaseRemaining(slot, "player missing");
+            return;
+        }
+        Freeze(p, false);  // bind requests are only processed in normal states
+        if (sNerve != nullptr) {
+            auto setNerve = OcoopFn<void (*)(void*, const void*)>(PatchOffsets::AlSetNerve);
+            setNerve((void*)sHost, sNerve);
+        }
+        if (sDokanMode >= 0 && IsDokanStageChange()) {
+            const uintptr_t info = *(const uintptr_t*)(sHost + 0x118);
+            if (IsPtr8(info))
+                *(int*)(info + 0x10) = sDokanMode;
+        }
+        if (sDoorStart >= 0 && IsDoorWarpStageChange())
+            *(unsigned char*)(sHost + 0x182) = (unsigned char)sDoorStart;
+        sSlot = slot;
+        sFrames = 0;
+        sReleased = false;
+        sBound = false;
+        sGrabObserved = false;
+        sPhase = Phase::Requesting;
+        AppendRequest(slot);  // submit immediately; the previous puppet is already released
+        Logging.Log("[OCoop] PATCH-0054 P%d entrance bind requesting host=%p tick=%u",
+                    slot + 1, (void*)sHost, sClock);
+    }
+
+    static void ObserveGrab() {
+        if (sGrabObserved)
+            return;
+        sGrabObserved = true;
+        sGrabTick = sClock;
+        sBound = true;
+        Logging.Log("[OCoop] PATCH-0054 P%d grabbed by entrance tick=%u",
+                    sSlot + 1, sGrabTick);
+    }
+
+    /* Include P1 when the native entrance uses this hook. */
+    static void OnPuppetStart(void* actor) {
+        if ((sPhase == Phase::Armed || sPhase == Phase::WaitRelease ||
+             sPhase == Phase::Requesting) && actor == PlayerAt(sSlot))
+            ObserveGrab();
+    }
+
+    /* rs::requestBindPlayer hook: record the stage-start host (P1's request). */
+    static void OnRequestBind(const void* host, void* sensor) {
+        if (!sInitWindow || sPhase != Phase::Idle || !IsPtr8((uintptr_t)host))
+            return;
+        auto getNerve = OcoopFn<const void* (*)(const void*)>(PatchOffsets::AlGetCurrentNerve);
+        sHost = (uintptr_t)host;
+        sSensor = sensor;
+        sNerve = getNerve(host);
+        /* DokanStageChange (arrival pipe): receiveMsg takes the exit branch
+         * only while DokanInfo(+0x118)->+0x10 == 1 and overwrites it with 2
+         * when P1's exit starts (1.0.0 0x25ded4 / 1.3.0 0x22f774). Afterwards
+         * a bind request runs the normal "enter pipe" branch and hides the
+         * player inside. Remember the arrival value to restore per replay. */
+        sDokanMode = -1;
+        if (IsDokanStageChange()) {
+            const uintptr_t info = *(const uintptr_t*)(sHost + 0x118);
+            if (IsPtr8(info))
+                sDokanMode = *(const int*)(info + 0x10);
+        }
+        /* DoorWarpStageChange (arrival door): receiveMsg takes the
+         * startBindStageStart branch only while byte +0x182 is set; init sets
+         * it and exeOpenOut clears it during P1's exit (1.0.0 0x262f4c), after
+         * which a bind request walks the player through the door and changes
+         * stage. Same offset in 1.3.0 (0x2338d0). */
+        sDoorStart = -1;
+        if (IsDoorWarpStageChange())
+            sDoorStart = *(const unsigned char*)(sHost + 0x182);
+        sSlot = 0;
+        sFrames = 0;
+        sReleased = false;
+        sPhase = Phase::Armed;
+        Logging.Log("[OCoop] PATCH-0054 entrance host=%p sensor=%p nerve=%p dokanMode=%d doorStart=%d recorded",
+                    host, sensor, sNerve, sDokanMode, sDoorStart);
+    }
+
+    /* The field lives in the entrance's puppet controller, but its value is
+     * the same IUsePlayerPuppet stored in the player's bind keeper. Match that
+     * value before Orig clears it: another player's release (or an already
+     * null field) must not advance this entrance. */
+    static void OnPuppetReleased(void* puppetField) {
+        if (sPhase != Phase::Armed && sPhase != Phase::WaitRelease &&
+            sPhase != Phase::Requesting)
+            return;
+        if (!IsPtr8((uintptr_t)puppetField))
+            return;
+        const uintptr_t keeper = BindKeeperOf(PlayerAt(sSlot));
+        const void* puppet = *(void* const*)puppetField;
+        if (!keeper || !IsPtr8((uintptr_t)puppet) ||
+            puppet != *(void* const*)(keeper + 0x18))
+            return;
+        if (sPhase == Phase::Requesting)
+            sBound = true;  // grabbed and already released within one frame
+        static unsigned logged = 0;
+        if (logged < 60) {
+            ++logged;
+            Logging.Log("[OCoop] PATCH-0054 puppet released field=%p host=%p slot=P%d",
+                        puppetField, (void*)sHost, sSlot + 1);
+        }
+        sReleased = true;
+    }
+
+    /* Advance only on the scene-control path, after the native release call
+     * and its caller have finished clearing the puppet and updating nerves.
+     * Rebinding inside the release hook would let that cleanup overwrite the
+     * next player's entrance. There is no added cadence or post-release gap. */
+    static void FinishTurn() {
+        sReleased = false;
+        Logging.Log("[OCoop] PATCH-0054 P%d exit elapsed=%u nextWait=0 ticks (grabObserved=%d)",
+                    sSlot + 1, sGrabObserved ? sClock - sGrabTick : 0,
+                    (int)sGrabObserved);
+        if (sSlot > 0)
+            Hide(PlayerAt(sSlot), false);
+        if (sSlot + 1 >= coop::sActivePlayers) {
+            sPhase = Phase::Done;
+            Logging.Log("[OCoop] PATCH-0054 entrance sequence complete");
+        } else {
+            BeginRequest(sSlot + 1);
+        }
+    }
+
+    /* Per frame (StageScene::control path). */
+    static void Tick() {
+        sInitWindow = false;
+        if (sPhase != Phase::Idle && sPhase != Phase::Done) {
+            ++sClock;
+            // Some pipe paths bypass startPlayerPuppet. Observe the actual
+            // entrance sensor rather than any unrelated player binding.
+            if (!sReleased && !sGrabObserved &&
+                (sPhase == Phase::Armed || sPhase == Phase::WaitRelease ||
+                 sPhase == Phase::Requesting)) {
+                const uintptr_t keeper = BindKeeperOf(PlayerAt(sSlot));
+                if (keeper && *(void* const*)(keeper + 0x8) == sSensor)
+                    ObserveGrab();
+            }
+        }
+        switch (sPhase) {
+        case Phase::Idle:
+        case Phase::Done:
+            return;
+        case Phase::Armed:
+            /* First frame: freeze + hide every extra player while P1 exits. */
+            for (int i = 1; i < coop::sActivePlayers; i++) {
+                void* p = PlayerAt(i);
+                Freeze(p, true);
+                Hide(p, true);
+            }
+            sPhase = Phase::WaitRelease;
+            sSlot = 0;
+            sFrames = 0;
+            // Preserve a P1 release observed during scene initialization.
+            Logging.Log("[OCoop] PATCH-0054 P2..P%d frozen+hidden, waiting for P1's exit",
+                        coop::sActivePlayers);
+            [[fallthrough]];  // a P1 release during init is ready immediately
+        case Phase::WaitRelease:
+            /* Players still waiting stay hidden even if a demo re-shows them. */
+            for (int i = sSlot + 1; i < coop::sActivePlayers; i++)
+                Hide(PlayerAt(i), true);
+            if (sReleased) {
+                FinishTurn();
+                return;
+            }
+            if (++sFrames >= (sSlot == 0 ? kFirstTimeoutFrames : kTimeoutFrames))
+                ReleaseRemaining(sSlot == 0 ? 1 : sSlot, "timeout");
+            return;
+        case Phase::Requesting: {
+            for (int i = sSlot + 1; i < coop::sActivePlayers; i++)
+                Hide(PlayerAt(i), true);
+            /* PlayerBindKeeper::sendStartMsg stores the bound host sensor at
+             * keeper+0x8 (same in both builds). Stop re-requesting the moment
+             * the player is grabbed, or the entrance grabs it again after its
+             * exit and pulls it back in (hidden). */
+            if (sBound) {
+                sPhase = Phase::WaitRelease;
+                sFrames = 0;
+                if (sReleased)
+                    FinishTurn();  // grabbed and released before this control tick
+                return;
+            }
+            AppendRequest(sSlot);
+            if (++sFrames >= kTimeoutFrames)
+                ReleaseRemaining(sSlot, "bind never started");
+            return;
+        }
+        }
+    }
+}
+
+/* Only the recorded arrival door is filtered; all other actor actions keep
+ * their native behavior, including ordinary entry through another door. */
+HOOK_DEFINE_TRAMPOLINE(Patch0054DoorAction) {
+    static void Callback(void* actor, const char* action) {
+        if (!entrance::SuppressDoorAction(actor, action))
+            Orig(actor, action);
+    }
+};
+HOOK_DEFINE_TRAMPOLINE(Patch0054RequestBindPlayer) {
+    static void Callback(const void* host, void* sensor) {
+        Orig(host, sensor);
+        entrance::OnRequestBind(host, sensor);
+    }
+};
+HOOK_DEFINE_TRAMPOLINE(Patch0054StartPlayerPuppet) {
+    static void Callback(void* self) {
+        Orig(self);
+        entrance::OnPuppetStart(self);
+    }
+};
+HOOK_DEFINE_TRAMPOLINE(Patch0054EndBindAndPuppetNull) {
+    static void Callback(void* puppetField) {
+        entrance::OnPuppetReleased(puppetField);
+        Orig(puppetField);
+    }
+};
+HOOK_DEFINE_TRAMPOLINE(Patch0054EndBindOnGroundAndPuppetNull) {
+    static void Callback(void* puppetField) {
+        entrance::OnPuppetReleased(puppetField);
+        Orig(puppetField);
+    }
+};
+#endif
+
 #if PATCH_0046_ENABLED
 namespace cliffcamera {
 /* PlayerActorHakoniwa::getPlayerCollision proves actor+0x170 is the concrete
@@ -1090,18 +1561,20 @@ namespace distancebubblecamera {
 /* Indices, not actor pointers, survive between callbacks. The holder is
  * resolved live by each producer; StageScene init resets any interrupted
  * episode before a new holder can reuse these slots. */
-static bool sActive[2] = {false, false};
-static bool sCapturePending[2] = {false, false};
-static bool sSawAbyss[2] = {false, false};
+static bool sActive[coop::kMaxPlayers] = {};
+static bool sCapturePending[coop::kMaxPlayers] = {};
+static bool sSawAbyss[coop::kMaxPlayers] = {};
 
 static void ResetAll() {
-    sActive[0] = sActive[1] = false;
-    sCapturePending[0] = sCapturePending[1] = false;
-    sSawAbyss[0] = sSawAbyss[1] = false;
+    for (int i = 0; i < coop::kMaxPlayers; i++) {
+        sActive[i] = false;
+        sCapturePending[i] = false;
+        sSawAbyss[i] = false;
+    }
 }
 
 static void BeginCapturePending(int playerIdx) {
-    if (playerIdx < 0 || playerIdx >= 2 || sActive[playerIdx] ||
+    if (playerIdx < 0 || playerIdx >= coop::kMaxPlayers || sActive[playerIdx] ||
         sCapturePending[playerIdx])
         return;
     sCapturePending[playerIdx] = true;
@@ -1110,7 +1583,7 @@ static void BeginCapturePending(int playerIdx) {
 }
 
 static void CancelCapturePending(int playerIdx) {
-    if (playerIdx < 0 || playerIdx >= 2 || !sCapturePending[playerIdx])
+    if (playerIdx < 0 || playerIdx >= coop::kMaxPlayers || !sCapturePending[playerIdx])
         return;
     sCapturePending[playerIdx] = false;
     Logging.Log("[OCoop] PATCH-0045 capture-pending camera priority cancelled idx=%d",
@@ -1118,7 +1591,7 @@ static void CancelCapturePending(int playerIdx) {
 }
 
 static void Arm(int playerIdx) {
-    if (playerIdx < 0 || playerIdx >= 2)
+    if (playerIdx < 0 || playerIdx >= coop::kMaxPlayers)
         return;
     sCapturePending[playerIdx] = false;
     sActive[playerIdx] = true;
@@ -1131,7 +1604,7 @@ static void Arm(int playerIdx) {
  * first non-Abyss frame is still survivor-owned. The following callback
  * resumes normal midpoint/zoom production. */
 static bool Update(int playerIdx, bool isAbyss) {
-    if (playerIdx < 0 || playerIdx >= 2)
+    if (playerIdx < 0 || playerIdx >= coop::kMaxPlayers)
         return false;
     if (sCapturePending[playerIdx])
         return true;
@@ -1158,28 +1631,194 @@ namespace p2hud {
 constexpr size_t kCounterLifeSize = 0x140;  // CounterLifeCtrl ctor allocation, Ghidra 20260711-200209
 
 struct Vec2 { float x, y; };
-static void* sCounter = nullptr;
-static void* sOwner = nullptr;
-static int sPendingHealth = PATCH_0009_P2_HEALTH_MAX;
-static int sPendingMaxHealth = PATCH_0009_P2_HEALTH_MAX;
-static float sGaugeMax = 0.0f;
 
 /* Blue bonus tier (CounterLifeUp). P1's native CounterLifeCtrl builds a SECOND
  * CounterLife from the same LayoutInitInfo with resName "CounterLifeUp" (a
  * distinct archive that renders the blue hearts above the green three) and shows
- * it only when hp exceeds the normal max of 3. We mirror that exactly so P2's
- * six-heart HUD matches P1. Zero extra hooks: this rides inside the existing
- * PATCH-0014 ctor/end lifecycle. The green tier below now uses the NORMAL max (3)
+ * it only when hp exceeds the normal max of 3. We mirror that exactly so each
+ * extra player's six-heart HUD matches P1. The green tier uses the NORMAL max (3)
  * as its gauge denominator so it saturates full at hp>=3 and the surplus shows on
  * the blue overlay — the stock CounterLifeCtrl behaviour. (Ghidra + decomp
  * OdysseyDecomp\src\Layout\CounterLifeCtrl.cpp: setCount / calcLifeUpCount /
  * isActiveCounterLifeUp; CounterLife.cpp: the "CounterLifeUp" resName branch.) */
 constexpr int kP2NormalMax = PATCH_0009_P2_HEALTH_MAX;  // 3 — first-tier heart count
-static void* sCounterUp = nullptr;
-static float sGaugeMaxUp = 0.0f;
-static bool sUpVisible = false;
- 
-static bool sHiddenBySceneEnd = false;
+
+/* One CounterLife pair per extra player, indexed by holder slot (1..3). */
+struct Hud {
+    void* counter = nullptr;
+    void* counterUp = nullptr;
+    int pendingHealth = PATCH_0009_P2_HEALTH_MAX;
+    int pendingMaxHealth = PATCH_0009_P2_HEALTH_MAX;
+    float gaugeMax = 0.0f;
+    float gaugeMaxUp = 0.0f;
+    bool upVisible = false;
+    bool hiddenBySceneEnd = false;
+};
+static Hud sHud[coop::kMaxPlayers];
+static void* sOwner = nullptr;  // StageSceneLayout that owns every extra-player HUD
+
+/* Top row beside P1's native life counter. CounterLife.bflyt places its "All"
+ * pane at (556,284) (top-right), but CounterLife_Wait/_Appear keyframe All's
+ * X every frame (FLPA target 0 = 556) and Add/Damage/Unite animate Life's X/Y,
+ * so a translation on either is overwritten. Only their Y is free on All.
+ * The leaf panes inside Life have no transform animation in any CounterLife /
+ * CounterLifeUp .bflan, so the sideways step is applied to each of them,
+ * keeping their layout base offsets. Each counter is 128 units wide. */
+constexpr float kNativeLifeX = 556.0f;
+constexpr float kNativeLifeY = 284.0f;
+constexpr float kLifeSpacing = 90.0f;
+static Vec2 CornerFor(int) {
+    return Vec2{kNativeLifeX, kNativeLifeY};
+}
+
+struct LeafPane { const char* name; float x, y; };
+static const LeafPane kLifeLeaves[] = {
+    {"PicSh", 0.0f, 0.0f}, {"PicShTest", 0.0f, 0.0f}, {"PicLifeL", 0.0f, 0.0f},
+    {"PicLifeR", 0.0f, 0.0f}, {"PicIcon", 0.0f, 0.0f}, {"TxtLife", 0.0f, -3.0f},
+};
+static const LeafPane kLifeUpLeaves[] = {
+    {"PicBase", -16.0f, 0.0f}, {"PicShTest", -16.0f, 0.0f}, {"PicLifeL", -16.0f, 0.0f},
+    {"PicLifeR", -16.0f, 0.0f}, {"PicIcon", -16.0f, 0.0f}, {"TxtLife", -16.0f, -3.0f},
+};
+
+/* Per-player colors (nn::util::Unorm8x4 r,g,b,a), indexed by holder slot,
+ * picked from each player's hat (PlayerInitInfo +0x20 cap archive name). The
+ * centre heart gets the hat colour; the HP ring only a light wash of it,
+ * because CounterLife_Gauge animates the ring's material colour to show
+ * remaining health. Every CounterLife vertex-colour animation targets only
+ * pane alpha (FLVC target 16 on All/Life), so these are never overwritten. */
+struct Rgba { unsigned char r, g, b, a; };
+static void* AsIUseLayout(void* counter);
+static Rgba sHeartTint[coop::kMaxPlayers] = {
+    {230, 40, 40, 255}, {80, 230, 80, 255}, {255, 220, 40, 255}, {190, 110, 255, 255}};
+static Rgba sRingTint[coop::kMaxPlayers] = {
+    {255, 200, 200, 255}, {200, 255, 200, 255}, {255, 245, 180, 255}, {230, 200, 255, 255}};
+
+struct CapColor { const char* cap; unsigned char r, g, b; };
+static const CapColor kCapColors[] = {
+    {"Mario", 230, 40, 40},          {"Mario64", 230, 40, 40},
+    {"Mario64Metal", 190, 195, 210}, {"MarioAloha", 230, 70, 50},
+    {"MarioArmor", 170, 175, 185},   {"MarioCaptain", 50, 70, 160},
+    {"MarioClown", 255, 120, 190},   {"MarioColorClassic", 210, 40, 30},
+    {"MarioColorGold", 255, 200, 40}, {"MarioColorGoldHairNo", 255, 200, 40},
+    {"MarioColorLuigi", 70, 210, 70}, {"MarioColorWaluigi", 160, 80, 230},
+    {"MarioColorWario", 255, 215, 40}, {"MarioCook", 240, 240, 240},
+    {"MarioDiddyKong", 220, 40, 40}, {"MarioDoctor", 235, 235, 235},
+    {"MarioExplorer", 205, 175, 115}, {"MarioFootball", 60, 90, 200},
+    {"MarioGolf", 70, 130, 220},     {"MarioGunman", 150, 95, 55},
+    {"MarioHappi", 50, 90, 190},     {"MarioKing", 255, 200, 50},
+    {"MarioKoopa", 240, 140, 40},    {"MarioMaker", 255, 200, 30},
+    {"MarioMechanic", 60, 100, 200}, {"MarioPainter", 60, 60, 120},
+    {"MarioPilot", 140, 85, 45},     {"MarioPirate", 90, 90, 100},
+    {"MarioPoncho", 225, 185, 95},   {"MarioPrimitiveMan", 155, 105, 65},
+    {"MarioSailor", 240, 240, 240},  {"MarioScientist", 220, 230, 240},
+    {"MarioSnowSuit", 60, 120, 220}, {"MarioSpaceSuit", 235, 235, 245},
+    {"MarioSuit", 80, 80, 90},       {"MarioSwimwear", 230, 50, 50},
+    {"MarioTailCoat", 80, 70, 80},   {"MarioTuxedo", 240, 240, 240},
+};
+
+static bool StrEq(const char* a, const char* b) {
+    while (*a && *a == *b) { ++a; ++b; }
+    return *a == *b;
+}
+
+/* Hat archive name -> colour. Unknown hats (new costumes, mods) get a stable
+ * saturated colour derived from the name so each still looks distinct. */
+static void SetPlayerColorFromCap(int slot, const char* cap) {
+    if (slot < 0 || slot >= coop::kMaxPlayers)
+        return;
+    if (!IsPtr8((uintptr_t)cap) && !(cap != nullptr && (uintptr_t)cap > 0x10000))
+        return;
+    Rgba c = sHeartTint[slot];
+    bool found = false;
+    for (const CapColor& e : kCapColors) {
+        if (StrEq(cap, e.cap)) {
+            c = Rgba{e.r, e.g, e.b, 255};
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        unsigned h = 2166136261u;
+        for (const char* p = cap; *p; ++p)
+            h = (h ^ (unsigned char)*p) * 16777619u;
+        static const Rgba kFallback[] = {
+            {230, 60, 60, 255}, {60, 200, 90, 255}, {70, 120, 230, 255}, {245, 200, 40, 255},
+            {190, 90, 230, 255}, {40, 200, 210, 255}, {245, 130, 40, 255}, {240, 110, 180, 255}};
+        c = kFallback[h % (sizeof(kFallback) / sizeof(kFallback[0]))];
+    }
+    sHeartTint[slot] = c;
+    /* Ring: 35% hat colour over white, so HP colours stay readable. */
+    sRingTint[slot] = Rgba{(unsigned char)(255 - (255 - c.r) * 35 / 100),
+                           (unsigned char)(255 - (255 - c.g) * 35 / 100),
+                           (unsigned char)(255 - (255 - c.b) * 35 / 100), 255};
+    Logging.Log("[OCoop] PATCH-0014 p%d hat=\"%s\" colour=(%d,%d,%d)%s",
+                slot + 1, cap, c.r, c.g, c.b, found ? "" : " (auto)");
+}
+
+/* Same lookup al::setPaneLocalAlpha uses in both 1.0.0 and 1.3.0
+ * (IUseLayout vcall +0x08 -> +0x10 -> +0x18 layout -> vcall +0x60
+ * FindPaneByName(name, recursive)), then nn::ui2d::Pane::SetVertexColor
+ * (vtable +0x28; Picture's body stores at this+0xe8+idx*4 in both builds)
+ * for all four corners. */
+static void SetPaneTint(void* counter, const char* paneName, const Rgba& c) {
+    void* iuse = AsIUseLayout(counter);
+    if (!IsPtr8((uintptr_t)iuse))
+        return;
+    uintptr_t vt = *(uintptr_t*)iuse;
+    if (!IsPtr8(vt))
+        return;
+    auto getKeeper = *(void* (**)(void*))(vt + 0x08);
+    uintptr_t keeper = (uintptr_t)getKeeper(iuse);
+    if (!IsPtr8(keeper))
+        return;
+    uintptr_t inner = *(uintptr_t*)(keeper + 0x10);
+    if (!IsPtr8(inner))
+        return;
+    uintptr_t layout = *(uintptr_t*)(inner + 0x18);
+    if (!IsPtr8(layout) || !IsPtr8(*(uintptr_t*)layout))
+        return;
+    auto findPane = *(void* (**)(void*, const char*, bool))(*(uintptr_t*)layout + 0x60);
+    void* pane = findPane((void*)layout, paneName, true);
+    if (!IsPtr8((uintptr_t)pane) || !IsPtr8(*(uintptr_t*)pane))
+        return;
+    auto setVertexColor = *(void (**)(void*, int, const Rgba*))(*(uintptr_t*)pane + 0x28);
+    for (int corner = 0; corner < 4; corner++)
+        setVertexColor(pane, corner, &c);
+}
+
+static void ShiftLeaves(void* counter, int slot, bool up) {
+    if (!IsPtr8((uintptr_t)counter))
+        return;
+    auto setPaneTrans = OcoopFn<void (*)(void*, const char*, const Vec2&)>(
+        PatchOffsets::LayoutSetPaneLocalTrans2);
+    const float dx = -kLifeSpacing * (float)slot;
+    const LeafPane* leaves = up ? kLifeUpLeaves : kLifeLeaves;
+    const int count = up ? (int)(sizeof(kLifeUpLeaves) / sizeof(kLifeUpLeaves[0]))
+                         : (int)(sizeof(kLifeLeaves) / sizeof(kLifeLeaves[0]));
+    for (int i = 0; i < count; i++)
+        setPaneTrans(AsIUseLayout(counter), leaves[i].name,
+                     Vec2{leaves[i].x + dx, leaves[i].y});
+}
+
+static void TintCounter(void* counter, int slot) {
+    if (!IsPtr8((uintptr_t)counter) || slot < 0 || slot >= coop::kMaxPlayers)
+        return;
+    /* Centre heart (PicIcon): material white is (255,255,255) and
+     * CounterLife_Loop only flashes its G/B to 0, so the texture is light and
+     * a full vertex tint recolours it. The number stays white for contrast. */
+    SetPaneTint(counter, "PicIcon", sHeartTint[slot]);
+    SetPaneTint(counter, "PicLifeL", sRingTint[slot]);
+    SetPaneTint(counter, "PicLifeR", sRingTint[slot]);
+}
+
+static bool AnyCounter() {
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        if (sHud[i].counter != nullptr)
+            return true;
+    }
+    return false;
+}
 
 static void* AsIUseLayout(void* counter) {
     /* LayoutActor's IUseLayout subobject. CounterLifeCtrl C1 passes
@@ -1215,12 +1854,10 @@ static const char16_t* HealthText(int hp) {
 
 /* Blue bonus overlay: the hearts ABOVE the normal three, on their own gauge of
  * max 3. Appears only while hp>3 and is killed back to hidden at hp<=3, matching
- * P1's isActiveCounterLifeUp gate. sUpVisible tracks the appear/kill edge so we
- * do not re-appear or re-kill every health tick. Fully self-contained: if the up
- * counter failed to construct (null), this is a no-op and the green tier still
- * works exactly as the verified PATCH-0014 did. */
-static void ApplyBonus(int hp) {
-    if (!IsPtr8((uintptr_t)sCounterUp) || sGaugeMaxUp <= 0.0f)
+ * P1's isActiveCounterLifeUp gate. upVisible tracks the appear/kill edge. If the
+ * up counter failed to construct (null), this is a no-op. */
+static void ApplyBonus(Hud& h, int hp) {
+    if (!IsPtr8((uintptr_t)h.counterUp) || h.gaugeMaxUp <= 0.0f)
         return;
     auto appear = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeAppear);
     auto start = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeStart);
@@ -1231,106 +1868,126 @@ static void ApplyBonus(int hp) {
     if (hp > kP2NormalMax) {
         int bonus = hp - kP2NormalMax;
         if (bonus > 3) bonus = 3;
-        /* v8: while the scene-layout end has the HUD demo-hidden, keep feeding
-         * gauge/text (native-sanctioned on killed layouts — the stock ctrl ctor
-         * does the same) but do not appear the blue tier mid-demo; the restore
+        /* While the scene-layout end has the HUD demo-hidden, keep feeding
+         * gauge/text but do not appear the blue tier mid-demo; the restore
          * path clears the flag and re-runs ApplyHealth. */
-        if (!sUpVisible && !sHiddenBySceneEnd) {
-            appear(sCounterUp);
-            start(sCounterUp);
-            sUpVisible = true;
+        if (!h.upVisible && !h.hiddenBySceneEnd) {
+            appear(h.counterUp);
+            start(h.counterUp);
+            h.upVisible = true;
         }
-        const float frame = sGaugeMaxUp - sGaugeMaxUp * (float)bonus / 3.0f;
-        setCount(sCounterUp, frame);
+        const float frame = h.gaugeMaxUp - h.gaugeMaxUp * (float)bonus / 3.0f;
+        setCount(h.counterUp, frame);
         /* The up overlay renders ON TOP of the green counter, so its TxtLife is
-         * the numeral the player sees. Native CounterLifeCtrl::setCount writes
-         * the TOTAL count to every counter's TxtLife (Matching source line 88);
-         * writing the bonus here showed "3" at six hearts (user screenshot
-         * 2026-07-14). */
-        setPaneString(AsIUseLayout(sCounterUp), "TxtLife", HealthText(hp));
-    } else if (sUpVisible) {
-        kill(sCounterUp);
-        sUpVisible = false;
+         * the numeral the player sees: write the TOTAL, like native setCount. */
+        setPaneString(AsIUseLayout(h.counterUp), "TxtLife", HealthText(hp));
+    } else if (h.upVisible) {
+        kill(h.counterUp);
+        h.upVisible = false;
     }
 }
 
-static void ApplyHealth(int hp) {
-    if (!IsPtr8((uintptr_t)sCounter) || sGaugeMax <= 0.0f)
+static void ApplyHealth(Hud& h, int hp) {
+    if (!IsPtr8((uintptr_t)h.counter) || h.gaugeMax <= 0.0f)
         return;
     if (hp < 0) hp = 0;
-    if (sPendingMaxHealth < PATCH_0009_P2_HEALTH_MAX)
-        sPendingMaxHealth = PATCH_0009_P2_HEALTH_MAX;
-    if (sPendingMaxHealth > 6)
-        sPendingMaxHealth = 6;
-    if (hp > sPendingMaxHealth) hp = sPendingMaxHealth;
-    /* Green normal tier: the first three hearts. Denominator is the NORMAL max
-     * (3), so the gauge saturates full at hp>=3 (frame clamps at 0) and any
-     * surplus is shown by the blue overlay — not squeezed into the green bar.
-     * For the verified hp<=3 case this is identical to the old hp/max formula. */
+    if (h.pendingMaxHealth < PATCH_0009_P2_HEALTH_MAX)
+        h.pendingMaxHealth = PATCH_0009_P2_HEALTH_MAX;
+    if (h.pendingMaxHealth > 6)
+        h.pendingMaxHealth = 6;
+    if (hp > h.pendingMaxHealth) hp = h.pendingMaxHealth;
+    /* Green normal tier: the first three hearts. */
     int greenHp = hp;
     if (greenHp > kP2NormalMax) greenHp = kP2NormalMax;
-    const float frame = sGaugeMax - sGaugeMax * (float)greenHp / (float)kP2NormalMax;
+    const float frame = h.gaugeMax - h.gaugeMax * (float)greenHp / (float)kP2NormalMax;
     auto setCount = OcoopFn<void (*)(void*, float)>(PatchOffsets::CounterLifeSetCount);
     auto setPaneString = OcoopFn<void (*)(void*, const char*, const char16_t*)>(
         PatchOffsets::LayoutSetPaneString);
-    setCount(sCounter, frame);
-    setPaneString(AsIUseLayout(sCounter), "TxtLife", HealthText(hp));
-    ApplyBonus(hp);
+    setCount(h.counter, frame);
+    setPaneString(AsIUseLayout(h.counter), "TxtLife", HealthText(hp));
+    ApplyBonus(h, hp);
 }
 
-static void NotifyHealth(int hp, int maxHealth) {
-    sPendingHealth = hp;
-    sPendingMaxHealth = maxHealth;
-    ApplyHealth(hp);
-}
-
- 
-#if PATCH_0014_CAPTURE_RESTORE_ENABLED
-static void RestoreAfterCapture(unsigned ticks) {
-    if (!IsPtr8((uintptr_t)sCounter))
+static void NotifyHealth(int slot, int hp, int maxHealth) {
+    if (slot < 1 || slot >= coop::kMaxPlayers)
         return;
-    auto isActive = OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsActiveLayout);
-    const bool activeBefore = isActive(sCounter);
-    if (activeBefore) {
-        Logging.Log("[OCoop] PATCH-0014 capture check activeBefore=1 applied=0 hp=%d ticks=%u",
-                    sPendingHealth, ticks);
-        return;
+    Hud& h = sHud[slot];
+    const int before = h.pendingHealth;
+    h.pendingHealth = hp;
+    h.pendingMaxHealth = maxHealth;
+    ApplyHealth(h, hp);
+    /* Same shake P1's counter plays on damage: CounterLifeCtrl::startCountAnim
+     * calls al::startAction(layout, "Damage", "Life"). */
+    if (hp < before && IsPtr8((uintptr_t)h.counter)) {
+        auto isActive = OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsActiveLayout);
+        auto startAction = OcoopFn<void (*)(void*, const char*, const char*)>(
+            PatchOffsets::AlStartLayoutAction);
+        if (isActive(h.counter))
+            startAction(AsIUseLayoutAction(h.counter), "Damage", "Life");
+        if (h.upVisible && IsPtr8((uintptr_t)h.counterUp))
+            startAction(AsIUseLayoutAction(h.counterUp), "Damage", "Life");
     }
+}
+
+/* Re-show one HUD that a demo or capture hid. */
+static void Reappear(Hud& h) {
     auto appear = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeAppear);
     auto start = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeStart);
-    appear(sCounter);
-    start(sCounter);
-    sUpVisible = false;
-    ApplyHealth(sPendingHealth);
-    Logging.Log("[OCoop] PATCH-0014 capture check activeBefore=0 applied=1 hp=%d ticks=%u",
-                sPendingHealth, ticks);
+    appear(h.counter);
+    start(h.counter);
+    h.upVisible = false;  /* ApplyHealth re-appears the blue tier if hp>3 */
+    h.hiddenBySceneEnd = false;
+    ApplyHealth(h, h.pendingHealth);
+}
+
+#if PATCH_0014_CAPTURE_RESTORE_ENABLED
+static void RestoreAfterCapture(unsigned ticks) {
+    /* Superseded by SyncWithNative: restore only when P1's counter is back. */
+    if (ticks != 0xffffffffu)
+        return;
+    auto isActive = OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsActiveLayout);
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        Hud& h = sHud[i];
+        if (!IsPtr8((uintptr_t)h.counter))
+            continue;
+        if (isActive(h.counter))
+            continue;
+        Reappear(h);
+        Logging.Log("[OCoop] PATCH-0014 capture check p%d activeBefore=0 applied=1 hp=%d ticks=%u",
+                    i + 1, h.pendingHealth, ticks);
+    }
 }
 #endif
 
 static void DetachForSceneReset() {
     /* A full-miss reload can bypass StageSceneLayout::end. The old layout and
-     * CounterLife then belong to the retiring scene even though their numeric
+     * CounterLifes then belong to the retiring scene even though their numeric
      * addresses still pass IsPtr8. Drop the handles at the proven new-scene
-     * boundary before ResetP2Health publishes the next scene's pending value. */
-    if (sCounter != nullptr || sOwner != nullptr) {
-        Logging.Log("[OCoop] PATCH-0014 HUD detached for scene reset counter=%p up=%p owner=%p",
-                    sCounter, sCounterUp, sOwner);
+     * boundary before the health reset publishes the next scene's values. */
+    if (AnyCounter() || sOwner != nullptr) {
+        Logging.Log("[OCoop] PATCH-0014 HUD detached for scene reset owner=%p", sOwner);
     }
-    sCounter = nullptr;
-    sCounterUp = nullptr;
+    for (int i = 0; i < coop::kMaxPlayers; i++) {
+        Hud& h = sHud[i];
+        h.counter = nullptr;
+        h.counterUp = nullptr;
+        h.gaugeMax = 0.0f;
+        h.gaugeMaxUp = 0.0f;
+        h.upVisible = false;
+        h.hiddenBySceneEnd = false;
+    }
     sOwner = nullptr;
-    sGaugeMax = 0.0f;
-    sGaugeMaxUp = 0.0f;
-    sUpVisible = false;
-    sHiddenBySceneEnd = false;
 }
 
-static void Create(void* owner, const void* layoutInitInfo) {
-    if (!IsPtr8((uintptr_t)owner) || !IsPtr8((uintptr_t)layoutInitInfo))
-        return;
+static void CreateOne(int slot, const void* layoutInitInfo) {
+    static const char* kNames[coop::kMaxPlayers] = {
+        "", "[OCoop]P2Life", "[OCoop]P3Life", "[OCoop]P4Life"};
+    static const char* kUpNames[coop::kMaxPlayers] = {
+        "", "[OCoop]P2LifeUp", "[OCoop]P3LifeUp", "[OCoop]P4LifeUp"};
+    Hud& h = sHud[slot];
     /* Scene end clears the old pointer. Never touch a previous-scene HUD here. */
-    sCounter = ::operator new(kCounterLifeSize);
-    if (!sCounter)
+    h.counter = GameNew(kCounterLifeSize);
+    if (!h.counter)
         return;
     auto ctor = OcoopFn<void (*)(void*, const char*, const char*, const void*)>(
         PatchOffsets::CounterLifeCtor);
@@ -1338,128 +1995,165 @@ static void Create(void* owner, const void* layoutInitInfo) {
         PatchOffsets::LayoutGetActionFrameMax);
     auto setPaneTrans = OcoopFn<void (*)(void*, const char*, const Vec2&)>(
         PatchOffsets::LayoutSetPaneLocalTrans2);
-    ctor(sCounter, "[OCoop]P2Life", "CounterLife", layoutInitInfo);
-    sOwner = owner;
-    sGaugeMax = getFrameMax(AsIUseLayoutAction(sCounter), "Gauge", "Gauge");
-    /* Last runtime-confirmed visible placement. Editable HUD offsets are
-     * retired until a stable two-axis layout lever is proven. */
-    const Vec2 fixedCorner = {460.0f, 0.0f};
-    setPaneTrans(AsIUseLayout(sCounter), "All", fixedCorner);
+    ctor(h.counter, kNames[slot], "CounterLife", layoutInitInfo);
+    h.gaugeMax = getFrameMax(AsIUseLayoutAction(h.counter), "Gauge", "Gauge");
+    const Vec2 corner = CornerFor(slot);
+    setPaneTrans(AsIUseLayout(h.counter), "All", corner);
+    ShiftLeaves(h.counter, slot, false);
+    TintCounter(h.counter, slot);
 
     /* Blue bonus overlay, built from the SAME LayoutInitInfo with the
-     * "CounterLifeUp" archive (P1's CounterLifeCtrl constructs its three counters
-     * from one info the same way). Same fixed corner as the green tier — the blue
-     * hearts sit above the green inside the archive's own pane layout, exactly as
-     * P1 overlays them. Start hidden; ApplyBonus reveals it only when hp>3. */
-    sCounterUp = ::operator new(kCounterLifeSize);
-    sGaugeMaxUp = 0.0f;
-    sUpVisible = false;
-    sHiddenBySceneEnd = false;
-    if (IsPtr8((uintptr_t)sCounterUp)) {
-        ctor(sCounterUp, "[OCoop]P2LifeUp", "CounterLifeUp", layoutInitInfo);
-        sGaugeMaxUp = getFrameMax(AsIUseLayoutAction(sCounterUp), "Gauge", "Gauge");
-        setPaneTrans(AsIUseLayout(sCounterUp), "All", fixedCorner);
+     * "CounterLifeUp" archive, same corner, hidden until hp>3. */
+    h.counterUp = GameNew(kCounterLifeSize);
+    h.gaugeMaxUp = 0.0f;
+    h.upVisible = false;
+    h.hiddenBySceneEnd = false;
+    if (IsPtr8((uintptr_t)h.counterUp)) {
+        ctor(h.counterUp, kUpNames[slot], "CounterLifeUp", layoutInitInfo);
+        h.gaugeMaxUp = getFrameMax(AsIUseLayoutAction(h.counterUp), "Gauge", "Gauge");
+        setPaneTrans(AsIUseLayout(h.counterUp), "All", corner);
+        ShiftLeaves(h.counterUp, slot, true);
+        TintCounter(h.counterUp, slot);
         auto kill = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeKill);
-        kill(sCounterUp);  // hidden until a bonus tier exists
+        kill(h.counterUp);  // hidden until a bonus tier exists
     }
 
-    Logging.Log("[OCoop] PATCH-0014 HUD created counter=%p up=%p owner=%p gaugeMax=%.1f/%.1f fixedPane=(%.0f,%.0f)",
-                sCounter, sCounterUp, owner, (double)sGaugeMax, (double)sGaugeMaxUp,
-                (double)fixedCorner.x, (double)fixedCorner.y);
-    ApplyHealth(sPendingHealth);
-    Logging.Log("[OCoop] PATCH-0014 HUD initialized health=%d", sPendingHealth);
+    Logging.Log("[OCoop] PATCH-0014 HUD created p%d counter=%p up=%p gaugeMax=%.1f/%.1f fixedPane=(%.0f,%.0f)",
+                slot + 1, h.counter, h.counterUp, (double)h.gaugeMax, (double)h.gaugeMaxUp,
+                (double)corner.x, (double)corner.y);
+    ApplyHealth(h, h.pendingHealth);
+    Logging.Log("[OCoop] PATCH-0014 HUD initialized p%d health=%d", slot + 1, h.pendingHealth);
+}
+
+static void Create(void* owner, const void* layoutInitInfo) {
+    if (!IsPtr8((uintptr_t)owner) || !IsPtr8((uintptr_t)layoutInitInfo))
+        return;
+    sOwner = owner;
+    for (int slot = 1; slot < coop::sActivePlayers && slot < coop::kMaxPlayers; slot++)
+        CreateOne(slot, layoutInitInfo);
+    /* P1's native counters (StageSceneLayout+0x20 CounterLifeCtrl: +0x18
+     * CounterLife, +0x20 CounterLifeUp, +0x28 CounterLifeKids; same in both
+     * builds) get P1's hat colour too. */
+    const uintptr_t ctrl = *(const uintptr_t*)((uintptr_t)owner + 0x20);
+    if (IsPtr8(ctrl)) {
+        for (uintptr_t off = 0x18; off <= 0x28; off += 8) {
+            void* native = *(void* const*)(ctrl + off);
+            if (IsPtr8((uintptr_t)native))
+                TintCounter(native, 0);
+        }
+    }
 }
 
 static void Appear(void* owner) {
-    if (owner != sOwner || !IsPtr8((uintptr_t)sCounter))
+    if (owner != sOwner)
         return;
     auto appear = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeAppear);
     auto start = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeStart);
-    appear(sCounter);
-    start(sCounter);
-    ApplyHealth(sPendingHealth);
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        Hud& h = sHud[i];
+        if (!IsPtr8((uintptr_t)h.counter))
+            continue;
+        appear(h.counter);
+        start(h.counter);
+        ApplyHealth(h, h.pendingHealth);
+    }
 }
 
-/* v6 capture-hide fix. Ghidra run 20260713-155149: scene demos (the capture
- * cinematic among them) hide the gameplay HUD via StageSceneLayout::endWithoutCoin
- * (15 demo-director callers), and the game restores its stock layouts in
- * StageSceneLayout::start 0x20ca20 (CounterLifeCtrl::appear, MapMini, coin
- * counter, ...). P1's counter therefore returns after every capture demo while
- * our unmanaged counter stayed hidden — nothing re-appeared it. Restore ours at
- * the exact same boundary. The isActive gate keeps the normal scene start (and
- * any start() where nothing hid us) a no-op, and doubles as the discriminator:
- * if the user still sees no HUD while this logs active=1, the hide is not
- * actor-level and the next lever must be found. */
+/* Scene demos (the capture cinematic among them) hide the gameplay HUD via
+ * StageSceneLayout::endWithoutCoin, and the game restores its stock layouts in
+ * StageSceneLayout::start. Restore ours at the exact same boundary; the
+ * isActive gate keeps a normal scene start a no-op. */
 static void OnLayoutStart(void* owner) {
-    if (owner != sOwner || !IsPtr8((uintptr_t)sCounter))
+    if (owner != sOwner)
         return;
     auto isActive = OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsActiveLayout);
-    bool active = isActive(sCounter);
-#if OCOOP_DEV_DIAGNOSTICS
-#include "program/diagnostics_private/fragment_017.inc"
-#endif
-    if (active)
-        return;
-    auto appear = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeAppear);
-    auto start = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeStart);
-    appear(sCounter);
-    start(sCounter);
-    /* The demo hid the blue tier too (if shown). Reset the edge flag so
-     * ApplyBonus re-appears it when hp is still above the normal max. */
-    sUpVisible = false;
-    sHiddenBySceneEnd = false;
-    ApplyHealth(sPendingHealth);
-    Logging.Log("[OCoop] PATCH-0014 HUD reappear after demo hide hp=%d", sPendingHealth);
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        Hud& h = sHud[i];
+        if (!IsPtr8((uintptr_t)h.counter))
+            continue;
+        if (isActive(h.counter))
+            continue;
+        Reappear(h);
+        Logging.Log("[OCoop] PATCH-0014 HUD reappear after demo p%d hp=%d", i + 1, h.pendingHealth);
+    }
 }
 
-#if OCOOP_DEV_DIAGNOSTICS
-#include "program/diagnostics_private/fragment_018.inc"
-#endif
-
-#if OCOOP_DEV_DIAGNOSTICS
-#include "program/diagnostics_private/fragment_019.inc"
-#endif
-
-#if OCOOP_DEV_DIAGNOSTICS
-#include "program/diagnostics_private/fragment_020.inc"
-#endif
-
- 
 static void End(void* owner) {
     if (owner != sOwner)
         return;
     auto kill = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeKill);
-    if (IsPtr8((uintptr_t)sCounter))
-        kill(sCounter);
-    if (IsPtr8((uintptr_t)sCounterUp))
-        kill(sCounterUp);
-    sUpVisible = false;
-    sHiddenBySceneEnd = true;
-    Logging.Log("[OCoop] PATCH-0014 v8 HUD hidden by scene-layout end (kept for demo restore) hp=%d",
-                sPendingHealth);
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        Hud& h = sHud[i];
+        if (IsPtr8((uintptr_t)h.counter))
+            kill(h.counter);
+        if (IsPtr8((uintptr_t)h.counterUp))
+            kill(h.counterUp);
+        h.upVisible = false;
+        h.hiddenBySceneEnd = h.counter != nullptr;
+    }
+    Logging.Log("[OCoop] PATCH-0014 v8 HUD hidden by scene-layout end (kept for demo restore)");
 }
 
- 
+/* Mirror P1's native life counter every frame: StageSceneLayout+0x20 is its
+ * CounterLifeCtrl (StageSceneLayout ctor, both builds) and CounterLifeCtrl
+ * +0x18 its green CounterLife (CounterLifeCtrl ctor). Cutscenes, capture
+ * demos and scene-layout ends all hide that native counter, so the extra
+ * players' counters follow it instead of guessing from demo state. */
+static void SyncWithNative(void* stageSceneLayout) {
+    if (stageSceneLayout != sOwner || !IsPtr8((uintptr_t)stageSceneLayout))
+        return;
+    const uintptr_t ctrl = *(const uintptr_t*)((uintptr_t)stageSceneLayout + 0x20);
+    if (!IsPtr8(ctrl))
+        return;
+    void* native = *(void* const*)(ctrl + 0x18);
+    if (!IsPtr8((uintptr_t)native))
+        return;
+    auto isActive = OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsActiveLayout);
+    const bool nativeShown = isActive(native);
+    auto kill = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeKill);
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        Hud& h = sHud[i];
+        if (!IsPtr8((uintptr_t)h.counter))
+            continue;
+        const bool ours = isActive(h.counter);
+        if (nativeShown && !ours) {
+            Reappear(h);
+        } else if (!nativeShown && ours) {
+            kill(h.counter);
+            if (h.upVisible && IsPtr8((uintptr_t)h.counterUp))
+                kill(h.counterUp);
+            h.upVisible = false;
+            h.hiddenBySceneEnd = true;
+        }
+    }
+}
+
+/* Superseded by SyncWithNative (kept so existing call sites compile). */
 static void TickDemoRestore(void* anyPlayer) {
-    if (!sHiddenBySceneEnd || !IsPtr8((uintptr_t)sCounter) || !IsPtr8((uintptr_t)anyPlayer))
+    return;
+    if (!IsPtr8((uintptr_t)anyPlayer))
+        return;
+    bool pending = false;
+    for (int i = 1; i < coop::kMaxPlayers; i++)
+        pending = pending || (sHud[i].hiddenBySceneEnd && IsPtr8((uintptr_t)sHud[i].counter));
+    if (!pending)
         return;
     auto isActiveDemo = OcoopFn<bool (*)(const void*)>(PatchOffsets::RsIsActiveDemoActor);
     if (isActiveDemo(anyPlayer))
         return;
     auto isActive = OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsActiveLayout);
-    if (isActive(sCounter)) {
-        /* Something else already re-appeared it (scene-start restore). */
-        sHiddenBySceneEnd = false;
-        return;
+    for (int i = 1; i < coop::kMaxPlayers; i++) {
+        Hud& h = sHud[i];
+        if (!h.hiddenBySceneEnd || !IsPtr8((uintptr_t)h.counter))
+            continue;
+        if (isActive(h.counter)) {
+            /* Something else already re-appeared it (scene-start restore). */
+            h.hiddenBySceneEnd = false;
+            continue;
+        }
+        Reappear(h);
+        Logging.Log("[OCoop] PATCH-0014 v8 HUD restore after demo p%d hp=%d", i + 1, h.pendingHealth);
     }
-    auto appear = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeAppear);
-    auto start = OcoopFn<void (*)(void*)>(PatchOffsets::CounterLifeStart);
-    appear(sCounter);
-    start(sCounter);
-    sUpVisible = false;  /* ApplyHealth re-appears the blue tier if hp>3 */
-    sHiddenBySceneEnd = false;
-    ApplyHealth(sPendingHealth);
-    Logging.Log("[OCoop] PATCH-0014 v8 HUD restore after demo hp=%d", sPendingHealth);
 }
 }
 
@@ -2761,6 +3455,39 @@ HOOK_DEFINE_TRAMPOLINE(Patch0014P2HudLayoutEnd) {
 /* StageSceneLayout::start @ 0x20ca20 — the native post-demo HUD restore
  * boundary (also runs at normal scene start, where the isActive gate makes
  * OnLayoutStart a no-op). */
+/* StageSceneLayout::updateLifeCounter - called from StageScene::control every
+ * frame, demos included. Mirror P1's counter visibility onto P2..P4. */
+HOOK_DEFINE_TRAMPOLINE(Patch0014SyncLifeCounters) {
+    static void Callback(void* self) {
+        Orig(self);
+#if PATCH_0054_ENABLED
+        entrance::Tick();
+#endif
+        p2hud::SyncWithNative(self);
+    }
+};
+
+/* CounterLifeCtrl::calcLayoutTransByPlayer(sead::Vector3f* out): in some
+ * states (damage count, bubble recovery, life-up demo) P1's counter is moved
+ * next to Mario. Keep it at its fixed corner, the value native code itself
+ * uses otherwise (getInitTrans: +0x3c in kids mode, else +0x30; same offsets
+ * in 1.0.0 and 1.3.0), so it stays lined up with the extra players' counters. */
+HOOK_DEFINE_TRAMPOLINE(Patch0014PinLifeCounter) {
+    static void Callback(void* ctrl, float* out) {
+        Orig(ctrl, out);
+        const uintptr_t c = (uintptr_t)ctrl;
+        if (!IsPtr8(c) || out == nullptr)
+            return;
+        void* green = *(void* const*)(c + 0x18);
+        auto isKidsMode = OcoopFn<bool (*)(const void*)>(PatchOffsets::RsIsKidsModeLayout);
+        const bool kids = IsPtr8((uintptr_t)green) && isKidsMode(green);
+        const float* init = (const float*)(c + (kids ? 0x3c : 0x30));
+        out[0] = init[0];
+        out[1] = init[1];
+        out[2] = init[2];
+    }
+};
+
 HOOK_DEFINE_TRAMPOLINE(Patch0014P2HudLayoutStart) {
     static void Callback(void* self) {
         Orig(self);
@@ -2781,7 +3508,7 @@ HOOK_DEFINE_INLINE(Patch0024ChangeWorldDetach) {
         bool hadP2Hud = false;
         bool hadCompetitionHud = false;
 #if PATCH_0014_ENABLED
-        hadP2Hud = p2hud::sCounter != nullptr || p2hud::sOwner != nullptr;
+        hadP2Hud = p2hud::AnyCounter() || p2hud::sOwner != nullptr;
 #endif
 #if PATCH_0019_ENABLED
         hadCompetitionHud = coinrace::sHud != nullptr || coinrace::sOwner != nullptr;
@@ -2954,17 +3681,58 @@ namespace patch0008 {
 
 #if PATCH_0009_ENABLED
 namespace patch0009 {
-    static int sP2Health = PATCH_0009_P2_HEALTH_MAX;
-    static int sP2MaxHealth = PATCH_0009_P2_HEALTH_MAX;
-    static bool sP2HealthValid = false;
-    static bool sP1Terminal = false;
-    static bool sP1DelayActive = false;
-    static unsigned sP1DownFrames = 0;
-    static bool sP1DeadStateSeen = false;
-    static bool sP2Terminal = false;
-    static bool sP2DelayActive = false;
-    static unsigned sP2DownFrames = 0;
-    static bool sP2DeadStateSeen = false;
+    /* Per holder slot (0 = P1, 1..3 = P2..P4). P1 keeps the game's native
+     * GameData health; slots 1..3 use the private health below. Terminal /
+     * delayed-respawn bookkeeping exists for every slot. */
+    constexpr int kSlots = coop::kMaxPlayers;
+    static int sHealth[kSlots] = {PATCH_0009_P2_HEALTH_MAX, PATCH_0009_P2_HEALTH_MAX,
+                                  PATCH_0009_P2_HEALTH_MAX, PATCH_0009_P2_HEALTH_MAX};
+    static int sMaxHealth[kSlots] = {PATCH_0009_P2_HEALTH_MAX, PATCH_0009_P2_HEALTH_MAX,
+                                     PATCH_0009_P2_HEALTH_MAX, PATCH_0009_P2_HEALTH_MAX};
+    static bool sHealthValid[kSlots] = {};
+    static bool sTerminal[kSlots] = {};
+    static bool sDelayActive[kSlots] = {};
+    static unsigned sDownFrames[kSlots] = {};
+    static bool sDeadStateSeen[kSlots] = {};
+
+    /* Holder slot of a player actor, or -1 if it is not a registered player. */
+    static int SlotOf(void* actor) {
+        if (!IsPtr8((uintptr_t)actor))
+            return -1;
+        auto getPlayerActor = OcoopFn<void* (*)(const void*, int)>(PatchOffsets::AlGetPlayerActor);
+        for (int i = 0; i < coop::sActivePlayers && i < kSlots; i++) {
+            if (getPlayerActor(actor, i) == actor)
+                return i;
+        }
+        return -1;
+    }
+
+    static bool IsP1(void* actor) { return SlotOf(actor) == 0; }
+    /* "Extra" player = any co-op player after P1 (private health). The name is
+     * kept from the two-player version. */
+    static bool IsP2(void* actor) { return SlotOf(actor) >= 1; }
+
+    static bool IsTerminalSlot(int slot) { return slot >= 0 && slot < kSlots && sTerminal[slot]; }
+    static bool IsTerminal(void* actor) { return IsTerminalSlot(SlotOf(actor)); }
+    static bool IsLiveExtraSlot(int slot) {
+        return slot >= 1 && slot < coop::sActivePlayers && sHealthValid[slot] && !sTerminal[slot];
+    }
+    /* True when every extra player (P2..Pn) is terminal. */
+    static bool AllExtrasTerminal() {
+        for (int i = 1; i < coop::sActivePlayers && i < kSlots; i++) {
+            if (!sTerminal[i])
+                return false;
+        }
+        return coop::sActivePlayers > 1;
+    }
+
+    static void NotifyHud(int slot) {
+#if PATCH_0014_ENABLED
+        p2hud::NotifyHealth(slot, sHealth[slot], sMaxHealth[slot]);
+#else
+        (void)slot;
+#endif
+    }
 
     static uintptr_t GetGameDataHolder(void* actor) {
         uintptr_t player = (uintptr_t)actor;
@@ -2992,106 +3760,111 @@ namespace patch0009 {
         return maxHealth;
     }
 
-    static void ResetP2Health(void* actor) {
-        sP2MaxHealth = ReadNativeMaxHealth(actor);
-        sP2Health = sP2MaxHealth;
-        sP2HealthValid = true;
-#if PATCH_0014_ENABLED
-        p2hud::NotifyHealth(sP2Health, sP2MaxHealth);
-#endif
+    static void ResetHealth(int slot, void* actor) {
+        if (slot < 1 || slot >= kSlots)
+            return;
+        sMaxHealth[slot] = ReadNativeMaxHealth(actor);
+        sHealth[slot] = sMaxHealth[slot];
+        sHealthValid[slot] = true;
+        NotifyHud(slot);
     }
 
-    static void ResetSceneHealthState(void* p2) {
+    static void ClearTerminalState() {
+        for (int i = 0; i < kSlots; i++) {
+            sTerminal[i] = false;
+            sDelayActive[i] = false;
+            sDownFrames[i] = 0;
+            sDeadStateSeen[i] = false;
+        }
+    }
+
+    /* Called once per StageScene after the extra players are registered. */
+    static void ResetSceneHealthState(void* const* extras, int extraCount) {
 #if PATCH_0014_ENABLED
         p2hud::DetachForSceneReset();
 #endif
-        sP1Terminal = false;
-        sP1DelayActive = false;
-        sP1DownFrames = 0;
-        sP1DeadStateSeen = false;
-        sP2Terminal = false;
-        sP2DelayActive = false;
-        sP2DownFrames = 0;
-        sP2DeadStateSeen = false;
-        ResetP2Health(p2);
+        ClearTerminalState();
+        for (int i = 0; i < kSlots; i++)
+            sHealthValid[i] = false;
+        for (int i = 0; i < extraCount && i + 1 < kSlots; i++)
+            ResetHealth(i + 1, extras[i]);
     }
 
     static void ResetSoloSceneState() {
 #if PATCH_0014_ENABLED
         p2hud::DetachForSceneReset();
 #endif
-        sP2Health = PATCH_0009_P2_HEALTH_MAX;
-        sP2MaxHealth = PATCH_0009_P2_HEALTH_MAX;
-        sP2HealthValid = false;
-        sP1Terminal = false;
-        sP1DelayActive = false;
-        sP1DownFrames = 0;
-        sP1DeadStateSeen = false;
-        sP2Terminal = false;
-        sP2DelayActive = false;
-        sP2DownFrames = 0;
-        sP2DeadStateSeen = false;
-        Logging.Log("[OCoop] PATCH-0009 solo scene state reset P2-valid=0");
+        for (int i = 0; i < kSlots; i++) {
+            sHealth[i] = PATCH_0009_P2_HEALTH_MAX;
+            sMaxHealth[i] = PATCH_0009_P2_HEALTH_MAX;
+            sHealthValid[i] = false;
+        }
+        ClearTerminalState();
+        Logging.Log("[OCoop] PATCH-0009 solo scene state reset extras-valid=0");
     }
 
+    /* Life-Up heart: the team shares it, so every extra player gets the bonus tier. */
     static void GrantP2LifeUp() {
-        int oldMax = sP2MaxHealth;
-        sP2MaxHealth = 6;
-        if (!sP2Terminal)
-            sP2Health = sP2MaxHealth;
-        sP2HealthValid = true;
-#if PATCH_0014_ENABLED
-        p2hud::NotifyHealth(sP2Health, sP2MaxHealth);
-#endif
-        Logging.Log("[OCoop] PATCH-0009 p2 Life-Up event %d->%d hp=%d",
-                    oldMax, sP2MaxHealth, sP2Health);
+        for (int i = 1; i < coop::sActivePlayers && i < kSlots; i++) {
+            int oldMax = sMaxHealth[i];
+            sMaxHealth[i] = 6;
+            if (!sTerminal[i])
+                sHealth[i] = sMaxHealth[i];
+            sHealthValid[i] = true;
+            NotifyHud(i);
+            Logging.Log("[OCoop] PATCH-0009 p%d Life-Up event %d->%d hp=%d",
+                        i + 1, oldMax, sMaxHealth[i], sHealth[i]);
+        }
     }
 
-     
     static void HealP2Full(const char* route, bool touchHud) {
-        if (!sP2HealthValid || sP2Terminal)
-            return;
-        int before = sP2Health;
-        sP2Health = sP2MaxHealth;
-#if PATCH_0014_ENABLED
-        if (touchHud)
-            p2hud::NotifyHealth(sP2Health, sP2MaxHealth);
-#endif
-        Logging.Log("[OCoop] PATCH-0009 moon-heal route=%s p2 %d->%d/%d hud=%d",
-                    route, before, sP2Health, sP2MaxHealth, touchHud ? 1 : 0);
+        for (int i = 1; i < coop::sActivePlayers && i < kSlots; i++) {
+            if (!sHealthValid[i] || sTerminal[i])
+                continue;
+            int before = sHealth[i];
+            sHealth[i] = sMaxHealth[i];
+            if (touchHud)
+                NotifyHud(i);
+            Logging.Log("[OCoop] PATCH-0009 moon-heal route=%s p%d %d->%d/%d hud=%d",
+                        route, i + 1, before, sHealth[i], sMaxHealth[i], touchHud ? 1 : 0);
+        }
     }
 
-    static bool IsP2(void* actor) {
+    /* Nearest live co-op player other than `actor` (not terminal), or null. */
+    static void* NearestLivePartner(void* actor) {
         if (!IsPtr8((uintptr_t)actor))
-            return false;
-        auto getPlayerActor = OcoopFn<void* (*)(const void*, int)>(PatchOffsets::AlGetPlayerActor);
-        return getPlayerActor(actor, 1) == actor;
-    }
-
-    static bool IsP1(void* actor) {
-        if (!IsPtr8((uintptr_t)actor))
-            return false;
-        auto getPlayerActor = OcoopFn<void* (*)(const void*, int)>(PatchOffsets::AlGetPlayerActor);
-        return getPlayerActor(actor, 0) == actor;
+            return nullptr;
+        auto getPlayerActor =
+            OcoopFn<void* (*)(const void*, int)>(PatchOffsets::AlGetPlayerActor);
+        auto getTrans =
+            OcoopFn<const float* (*)(const void*)>(PatchOffsets::AlGetTrans);
+        const float* me = getTrans(actor);
+        void* best = nullptr;
+        float bestD = 0.0f;
+        for (int i = 0; i < coop::sActivePlayers && i < kSlots; i++) {
+            void* candidate = getPlayerActor((const void*)actor, i);
+            if (!IsPtr8((uintptr_t)candidate) || candidate == actor || sTerminal[i])
+                continue;
+            const float* pos = getTrans(candidate);
+            float d = 0.0f;
+            if (me != nullptr && pos != nullptr) {
+                const float dx = pos[0] - me[0], dy = pos[1] - me[1], dz = pos[2] - me[2];
+                d = dx * dx + dy * dy + dz * dz;
+            }
+            if (best == nullptr || d < bestD) {
+                best = candidate;
+                bestD = d;
+            }
+        }
+        return best;
     }
 
 #if PATCH_0035_ENABLED && PATCH_0003_ENABLED
     static bool SeedP1DelayedRecoverySafety(void* actor, void* recovery) {
-        if (!sP1Terminal || !IsP1(actor) || !IsPtr8((uintptr_t)recovery))
+        if (!sTerminal[0] || !IsP1(actor) || !IsPtr8((uintptr_t)recovery))
             return false;
 
-        auto getPlayerActor =
-            OcoopFn<void* (*)(const void*, int)>(PatchOffsets::AlGetPlayerActor);
-        void* partner = nullptr;
-        for (int i = 0; i < 4; i++) {
-            void* candidate = getPlayerActor((const void*)actor, i);
-            if (!IsPtr8((uintptr_t)candidate) || candidate == actor)
-                continue;
-            if (IsP2(candidate) && sP2Terminal)
-                continue;
-            partner = candidate;
-            break;
-        }
+        void* partner = NearestLivePartner(actor);
         if (!IsPtr8((uintptr_t)partner)) {
             Logging.Log("[OCoop] PATCH-0035 p1 delayed recovery seed pending: no live partner actor=%p",
                         actor);
@@ -3123,8 +3896,8 @@ namespace patch0009 {
 
 #if PATCH_0018_ENABLED
     static bool IsP2AtLastPrivateHeart(void* actor) {
-        return sP2HealthValid && !sP2Terminal && sP2Health == 1 &&
-               IsP2(actor);
+        const int slot = SlotOf(actor);
+        return slot >= 1 && sHealthValid[slot] && !sTerminal[slot] && sHealth[slot] == 1;
     }
 #endif
 
@@ -3133,6 +3906,7 @@ namespace patch0009 {
         uintptr_t player = (uintptr_t)actor;
         if (!IsPtr8(player))
             return false;
+        const int slot = SlotOf(actor);
 
         auto isNerve = OcoopFn<bool (*)(const void*, const void*)>(PatchOffsets::AlIsNerve);
         const void* nrvAbyss =
@@ -3151,7 +3925,7 @@ namespace patch0009 {
 #endif
         if (!recoveryValid) {
             Logging.Log("[OCoop] PATCH-0010 p%d recovery skip reason=%s recovery=%p",
-                        IsP2(actor) ? 2 : 1, reason, (void*)recovery);
+                        slot + 1, reason, (void*)recovery);
             return false;
         }
 
@@ -3162,8 +3936,8 @@ namespace patch0009 {
         uintptr_t stateAbyss = *(uintptr_t*)(player + 0x3b8);
         if (!IsPtr8(hackCap) || !IsPtr8(bindKeeper) || !IsPtr8(carryKeeper) ||
             !IsPtr8(equipUser) || !IsPtr8(stateAbyss)) {
-            Logging.Log("[OCoop] PATCH-0009 p2 recovery bad fields reason=%s cap=%p bind=%p carry=%p equip=%p abyss=%p",
-                        reason, (void*)hackCap, (void*)bindKeeper, (void*)carryKeeper,
+            Logging.Log("[OCoop] PATCH-0009 p%d recovery bad fields reason=%s cap=%p bind=%p carry=%p equip=%p abyss=%p",
+                        slot + 1, reason, (void*)hackCap, (void*)bindKeeper, (void*)carryKeeper,
                         (void*)equipUser, (void*)stateAbyss);
             return false;
         }
@@ -3185,83 +3959,71 @@ namespace patch0009 {
         forceRecovery(actor, (void*)hackCap, (void*)carryKeeper,
                       (void*)bindKeeper, (void*)equipUser, (void*)stateAbyss);
         Logging.Log("[OCoop] PATCH-0010 p%d recovery start reason=%s actor=%p",
-                    IsP2(actor) ? 2 : 1, reason, actor);
+                    slot + 1, reason, actor);
         return true;
     }
 
 #if PATCH_0010_ENABLED
-    static void BeginP1Terminal(void* actor, const char* reason) {
-        if (sP1Terminal)
+    static void BeginTerminal(int slot, void* actor, const char* reason) {
+        if (slot < 0 || slot >= kSlots || sTerminal[slot])
             return;
-        sP1Terminal = true;
-        sP1DelayActive = false;
-        sP1DownFrames = 0;
-        sP1DeadStateSeen = false;
-        Logging.Log("[OCoop] PATCH-0010 p1 terminal begin reason=%s actor=%p",
-                    reason, actor);
+        sTerminal[slot] = true;
+        sDelayActive[slot] = false;
+        sDownFrames[slot] = 0;
+        sDeadStateSeen[slot] = false;
+        Logging.Log("[OCoop] PATCH-0010 p%d terminal begin reason=%s actor=%p hp=%d",
+                    slot + 1, reason, actor, slot == 0 ? -1 : sHealth[slot]);
     }
 
-    static void BeginP2Terminal(void* actor, const char* reason) {
-        if (sP2Terminal)
-            return;
-        sP2Terminal = true;
-        sP2DelayActive = false;
-        sP2DownFrames = 0;
-        sP2DeadStateSeen = false;
-        Logging.Log("[OCoop] PATCH-0010 p2 terminal begin reason=%s actor=%p hp=%d",
-                    reason, actor, sP2Health);
+    static void BeginP1Terminal(void* actor, const char* reason) {
+        BeginTerminal(0, actor, reason);
     }
+
+#if !PATCH_0018_ENABLED
+    static void BeginP2Terminal(void* actor, const char* reason) {
+        const int slot = SlotOf(actor);
+        if (slot >= 1)
+            BeginTerminal(slot, actor, reason);
+    }
+#endif
 
 #if PATCH_0018_ENABLED
     /* The native pre-movement last-heart branch calls dead(), not
      * damageForce(). Mirror its terminal health transition into the private
-     * P2 sidecar before suppressing the shared GameData kill in the existing
+     * sidecar before suppressing the shared GameData kill in the existing
      * Patch0009P2Dead trampoline. */
     static void BeginP2TerminalFromDead(void* actor, const char* reason) {
-        if (sP2Terminal)
+        const int slot = SlotOf(actor);
+        if (slot < 1 || sTerminal[slot])
             return;
-        if (!sP2HealthValid)
-            ResetP2Health(actor);
-        int before = sP2Health;
-        sP2Health = 0;
-#if PATCH_0014_ENABLED
-        p2hud::NotifyHealth(sP2Health, sP2MaxHealth);
-#endif
-        Logging.Log("[OCoop] PATCH-0018 p2 direct-dead hp=%d->0 reason=%s actor=%p",
-                    before, reason, actor);
-        BeginP2Terminal(actor, reason);
+        if (!sHealthValid[slot])
+            ResetHealth(slot, actor);
+        int before = sHealth[slot];
+        sHealth[slot] = 0;
+        NotifyHud(slot);
+        Logging.Log("[OCoop] PATCH-0018 p%d direct-dead hp=%d->0 reason=%s actor=%p",
+                    slot + 1, before, reason, actor);
+        BeginTerminal(slot, actor, reason);
     }
 #endif
 
     static void NoteDeadState(void* state, bool animationEnded) {
         uintptr_t self = (uintptr_t)state;
         void* actor = IsPtr8(self) ? *(void**)(self + 0x18) : nullptr;
-        if (sP1Terminal && IsP1(actor)) {
-            if (!sP1DeadStateSeen) {
-                sP1DeadStateSeen = true;
-                Logging.Log("[OCoop] PATCH-0010 p1 native dead-state entered state=%p actor=%p",
-                            state, actor);
-            }
-            if (animationEnded && !sP1DelayActive) {
-                sP1DelayActive = true;
-                sP1DownFrames = 0;
-                Logging.Log("[OCoop] PATCH-0010 p1 native death complete; delayed respawn starts seconds=%.2f frames=%u",
-                            ocoop::config::Get().respawnDelaySeconds,
-                            ocoop::config::RespawnDelayFrames());
-            }
-        } else if (sP2Terminal && IsP2(actor)) {
-            if (!sP2DeadStateSeen) {
-                sP2DeadStateSeen = true;
-                Logging.Log("[OCoop] PATCH-0010 p2 native dead-state entered state=%p actor=%p",
-                            state, actor);
-            }
-            if (animationEnded && !sP2DelayActive) {
-                sP2DelayActive = true;
-                sP2DownFrames = 0;
-                Logging.Log("[OCoop] PATCH-0010 p2 native death complete; delayed respawn starts seconds=%.2f frames=%u",
-                            ocoop::config::Get().respawnDelaySeconds,
-                            ocoop::config::RespawnDelayFrames());
-            }
+        const int slot = SlotOf(actor);
+        if (slot < 0 || !sTerminal[slot])
+            return;
+        if (!sDeadStateSeen[slot]) {
+            sDeadStateSeen[slot] = true;
+            Logging.Log("[OCoop] PATCH-0010 p%d native dead-state entered state=%p actor=%p",
+                        slot + 1, state, actor);
+        }
+        if (animationEnded && !sDelayActive[slot]) {
+            sDelayActive[slot] = true;
+            sDownFrames[slot] = 0;
+            Logging.Log("[OCoop] PATCH-0010 p%d native death complete; delayed respawn starts seconds=%.2f frames=%u",
+                        slot + 1, ocoop::config::Get().respawnDelaySeconds,
+                        ocoop::config::RespawnDelayFrames());
         }
     }
 
@@ -3269,56 +4031,35 @@ namespace patch0009 {
      * live actor every call and never keeps a scene heap pointer across frames. */
     static void TickTerminal(void* actor) {
         const unsigned downFrames = ocoop::config::RespawnDelayFrames();
-        bool p1 = IsP1(actor);
-        bool p2 = !p1 && IsP2(actor);
-        if (!p1 && !p2)
+        const int slot = SlotOf(actor);
+        if (slot < 0 || !sTerminal[slot] || !sDelayActive[slot])
             return;
 
-        if (p1 && sP1Terminal && sP1DelayActive) {
-            ++sP1DownFrames;
-            if (sP1DownFrames % PATCH_0010_GAME_TICKS_PER_SECOND == 0 &&
-                sP1DownFrames < downFrames) {
-                Logging.Log("[OCoop] PATCH-0010 p1 delayed respawn %u/%u",
-                            sP1DownFrames, downFrames);
-            }
-            if (sP1DownFrames < downFrames)
-                return;
-            if (!StartPlayerRecovery(actor, "tunable-delay-respawn", true)) {
-                sP1DownFrames = downFrames > PATCH_0010_GAME_TICKS_PER_SECOND
+        ++sDownFrames[slot];
+        if (sDownFrames[slot] % PATCH_0010_GAME_TICKS_PER_SECOND == 0 &&
+            sDownFrames[slot] < downFrames) {
+            Logging.Log("[OCoop] PATCH-0010 p%d delayed respawn %u/%u",
+                        slot + 1, sDownFrames[slot], downFrames);
+        }
+        if (sDownFrames[slot] < downFrames)
+            return;
+        /* P1 restores the native GameData health; extras reset private health. */
+        if (!StartPlayerRecovery(actor, "tunable-delay-respawn", slot == 0)) {
+            sDownFrames[slot] = downFrames > PATCH_0010_GAME_TICKS_PER_SECOND
                                     ? downFrames - PATCH_0010_GAME_TICKS_PER_SECOND
                                     : 0;
-                Logging.Log("[OCoop] PATCH-0010 p1 delayed respawn retry pending");
-                return;
-            }
-            sP1Terminal = false;
-            sP1DelayActive = false;
-            sP1DeadStateSeen = false;
-            Logging.Log("[OCoop] PATCH-0010 p1 respawn recovery started; native health restored");
+            Logging.Log("[OCoop] PATCH-0010 p%d delayed respawn retry pending", slot + 1);
             return;
         }
-
-        if (p2 && sP2Terminal && sP2DelayActive) {
-            ++sP2DownFrames;
-            if (sP2DownFrames % PATCH_0010_GAME_TICKS_PER_SECOND == 0 &&
-                sP2DownFrames < downFrames) {
-                Logging.Log("[OCoop] PATCH-0010 p2 delayed respawn %u/%u",
-                            sP2DownFrames, downFrames);
-            }
-            if (sP2DownFrames < downFrames)
-                return;
-            if (!StartPlayerRecovery(actor, "tunable-delay-respawn", false)) {
-                sP2DownFrames = downFrames > PATCH_0010_GAME_TICKS_PER_SECOND
-                                    ? downFrames - PATCH_0010_GAME_TICKS_PER_SECOND
-                                    : 0;
-                Logging.Log("[OCoop] PATCH-0010 p2 delayed respawn retry pending");
-                return;
-            }
-            sP2Terminal = false;
-            sP2DelayActive = false;
-            sP2DeadStateSeen = false;
-            ResetP2Health(actor);
-            Logging.Log("[OCoop] PATCH-0010 p2 respawn recovery started; health reset=%d max=%d",
-                        sP2Health, sP2MaxHealth);
+        sTerminal[slot] = false;
+        sDelayActive[slot] = false;
+        sDeadStateSeen[slot] = false;
+        if (slot == 0) {
+            Logging.Log("[OCoop] PATCH-0010 p1 respawn recovery started; native health restored");
+        } else {
+            ResetHealth(slot, actor);
+            Logging.Log("[OCoop] PATCH-0010 p%d respawn recovery started; health reset=%d max=%d",
+                        slot + 1, sHealth[slot], sMaxHealth[slot]);
         }
     }
 #endif
@@ -3335,7 +4076,8 @@ namespace patch0009 {
         if (!IsPtr8(self))
             return false;
         void* actor = *(void**)self;
-        if (!IsP2(actor))
+        const int slot = SlotOf(actor);
+        if (slot < 1)
             return false;
 
         *(unsigned char*)(self + 0x10) = 1;
@@ -3343,46 +4085,44 @@ namespace patch0009 {
         if (!force && *(unsigned char*)(self + 0x1c) != 0)
             return true;
 
-        if (!sP2HealthValid)
-            ResetP2Health(actor);
-        if (sP2Terminal)
+        if (!sHealthValid[slot])
+            ResetHealth(slot, actor);
+        if (sTerminal[slot])
             return true;
-        int before = sP2Health;
+        int before = sHealth[slot];
 #if OCOOP_DEV_DIAGNOSTICS
 #include "program/diagnostics_private/fragment_035.inc"
 #endif
-        if (sP2Health > 0)
-            --sP2Health;
-        if (sP2MaxHealth > PATCH_0009_P2_HEALTH_MAX &&
-            sP2Health <= PATCH_0009_P2_HEALTH_MAX) {
-            sP2MaxHealth = PATCH_0009_P2_HEALTH_MAX;
-            Logging.Log("[OCoop] PATCH-0009 p2 bonus tier consumed; max=%d hp=%d",
-                        sP2MaxHealth, sP2Health);
+        if (sHealth[slot] > 0)
+            --sHealth[slot];
+        if (sMaxHealth[slot] > PATCH_0009_P2_HEALTH_MAX &&
+            sHealth[slot] <= PATCH_0009_P2_HEALTH_MAX) {
+            sMaxHealth[slot] = PATCH_0009_P2_HEALTH_MAX;
+            Logging.Log("[OCoop] PATCH-0009 p%d bonus tier consumed; max=%d hp=%d",
+                        slot + 1, sMaxHealth[slot], sHealth[slot]);
         }
 
-        *(int*)(self + 0x24) = sP2Health;
+        *(int*)(self + 0x24) = sHealth[slot];
         *(int*)(self + 0x28) = 0;
         if (*(int*)(self + 0x2c) < 120)
             *(int*)(self + 0x2c) = 0;
-#if PATCH_0014_ENABLED
-        p2hud::NotifyHealth(sP2Health, sP2MaxHealth);
-#endif
+        NotifyHud(slot);
 
-        Logging.Log("[OCoop] PATCH-0009 p2 %s hp=%d->%d actor=%p",
-                    force ? "damageForce" : "damage", before, sP2Health, actor);
-        if (sP2Health == 0) {
+        Logging.Log("[OCoop] PATCH-0009 p%d %s hp=%d->%d actor=%p",
+                    slot + 1, force ? "damageForce" : "damage", before, sHealth[slot], actor);
+        if (sHealth[slot] == 0) {
 #if PATCH_0010_ENABLED
-            BeginP2Terminal(actor, force ? "damageForce-zero" : "damage-zero");
+            BeginTerminal(slot, actor, force ? "damageForce-zero" : "damage-zero");
 #else
             if (StartPlayerRecovery(actor, "health-zero", false)) {
-                ResetP2Health(actor);
-                Logging.Log("[OCoop] PATCH-0009 p2 health reset=%d after recovery start",
-                            sP2Health);
+                ResetHealth(slot, actor);
+                Logging.Log("[OCoop] PATCH-0009 p%d health reset=%d after recovery start",
+                            slot + 1, sHealth[slot]);
             } else {
-                /* Keep P2 at one heart if recovery cannot safely start; this
-                 * avoids converting an uncertain edge case into global death. */
-                sP2Health = 1;
-                *(int*)(self + 0x24) = sP2Health;
+                /* Keep the player at one heart if recovery cannot safely start;
+                 * this avoids converting an uncertain edge case into global death. */
+                sHealth[slot] = 1;
+                *(int*)(self + 0x24) = sHealth[slot];
             }
 #endif
         }
@@ -3403,6 +4143,8 @@ namespace patch0001 {
     static bool sCaptureValid = false;
     static uintptr_t sActorInitInfo = 0;
     alignas(16) static unsigned char sPiiCopy[0x48];
+    /* Per-slot PlayerInitInfo copies handed to the extra players' initPlayer. */
+    alignas(16) static unsigned char sPiiWork[ocoop::config::kMaxPlayers][0x48];
 
     template <typename T>
     static T fn(ptrdiff_t nso) {
@@ -3420,10 +4162,17 @@ HOOK_DEFINE_INLINE(Patch0001CaptureInitInfo) {
          * settings must therefore load here; the later layout reload makes HUD
          * placement consume the same file for the new scene. */
         ocoop::config::Reload();
+#if PATCH_0052_ENABLED
+        playercount::ResetPicker();  // discard UI pointers from the previous scene
+#endif
 #if PATCH_0045_ENABLED
         distancebubblecamera::ResetAll();
 #endif
         patch0001::sCaptureValid = false;
+        coop::sActivePlayers = 1;
+#if PATCH_0054_ENABLED
+        entrance::Reset();
+#endif
         uintptr_t aii = ctx->X[1];
         uintptr_t pii = ctx->X[2];
         if (!IsPtr8(aii) || !IsPtr8(pii)) {
@@ -3463,6 +4212,7 @@ HOOK_DEFINE_INLINE(Patch0001SpawnP2) {
             coinrace::ResetRound();
 #endif
             patch0001::sCaptureValid = false;
+            coop::sActivePlayers = 1;
             Logging.Log("[OCoop] PATCH-0052 StageScene gate mode=1P P2=skip cleanup=1");
             return;
         }
@@ -3483,18 +4233,8 @@ HOOK_DEFINE_INLINE(Patch0001SpawnP2) {
         auto registerPlayer =
             patch0001::fn<void (*)(void*, void*)>(PatchOffsets::AlPlayerFunctionRegisterPlayer);
 
-        int p1port = *(int*)(patch0001::sPiiCopy + 0x10);
-        int p2port = getPlayerControllerPort(1);
-        if (p2port < 0) {
-            Logging.Log("[OCoop] PATCH-0001 B: no second Npad (p2port=%d) — "
-                        "configure two controllers; skip", p2port);
-            return;
-        }
-        if (p2port == p1port) {
-            Logging.Log("[OCoop] PATCH-0001 B: p2port==p1port==%d, skip", p2port);
-            return;
-        }
-        bool connected = isPadConnected(p2port);  // p2port >= 0 guaranteed above
+        const int p1port = *(int*)(patch0001::sPiiCopy + 0x10);
+        const int wanted = ocoop::config::Get().playerCount;
 
         const char* name = nullptr;
         getDisplayName(&name, (const void*)patch0001::sActorInitInfo);
@@ -3502,100 +4242,162 @@ HOOK_DEFINE_INLINE(Patch0001SpawnP2) {
             Logging.Log("[OCoop] PATCH-0001 B: bad display name %p, skip", (const void*)name);
             return;
         }
-        Logging.Log("[OCoop] PATCH-0001 B: p1port=%d p2port=%d connected=%d name=\"%s\"",
-                    p1port, p2port, (int)connected, name);
 
-        void* p2 = createPlayer(name);
-        if (!IsPtr8((uintptr_t)p2)) {
-            Logging.Log("[OCoop] PATCH-0001 B: createPlayer failed %p", p2);
-            return;
-        }
-        Logging.Log("[OCoop] PATCH-0001 B: P2 constructed %p", p2);
+        /* Spawn holder slots 1..wanted-1 (P2..P4). Each extra player replays
+         * P1's construction recipe from a fresh copy of P1's PlayerInitInfo
+         * with its own port, costume and sideways spawn offset. Stop at the
+         * first missing controller: the game assigns Npads in order, so the
+         * player count is clamped to the controllers actually present. */
+#if PATCH_0014_ENABLED
+        p2hud::SetPlayerColorFromCap(0, *(const char* const*)(patch0001::sPiiCopy + 0x20));
+#endif
+        static const float kSpawnSide[ocoop::config::kMaxPlayers] = {0.0f, 1.0f, -1.0f, 2.0f};
+        void* extras[ocoop::config::kMaxPlayers] = {};
+        int spawned = 0;
+        for (int slot = 1; slot < wanted; slot++) {
+            const int port = getPlayerControllerPort(slot);
+            if (port < 0) {
+                Logging.Log("[OCoop] PATCH-0001 B: no Npad for P%d (port=%d) - "
+                            "configure %d controllers; player count clamped to %d",
+                            slot + 1, port, wanted, slot);
+                break;
+            }
+            if (port == p1port) {
+                Logging.Log("[OCoop] PATCH-0001 B: P%d port==p1port==%d, skip", slot + 1, port);
+                break;
+            }
+            const bool connected = isPadConnected(port);  // port >= 0 guaranteed above
+            Logging.Log("[OCoop] PATCH-0001 B: p1port=%d p%dport=%d connected=%d name=\"%s\"",
+                        p1port, slot + 1, port, (int)connected, name);
 
-        *(int*)(patch0001::sPiiCopy + 0x10) = p2port;
+            void* actor = createPlayer(name);
+            if (!IsPtr8((uintptr_t)actor)) {
+                Logging.Log("[OCoop] PATCH-0001 B: createPlayer failed for P%d %p", slot + 1, actor);
+                break;
+            }
+            Logging.Log("[OCoop] PATCH-0001 B: P%d constructed %p", slot + 1, actor);
 
-        /* Spawn P2 beside P1 instead of inside it. PlayerInitInfo holds the
-         * start pose as trans (Vector3f) at +0x28 and quat (x,y,z,w) at +0x34
-         * (rs::initPlayerActorInfo reads exactly these; identical in 1.0.0 and
-         * 1.3.0). Shift along P1's local X axis = first rotation-matrix column,
-         * so the offset is sideways relative to P1's facing and respects
-         * non-default gravity. */
-        {
-            const float offset = ocoop::config::Get().p2SpawnOffset;
-            if (offset != 0.0f) {
-                float* trans = (float*)(patch0001::sPiiCopy + 0x28);
-                const float* q = (const float*)(patch0001::sPiiCopy + 0x34);
-                const float x = q[0], y = q[1], z = q[2], w = q[3];
-                float side[3] = {1.0f - 2.0f * (y * y + z * z),
-                                 2.0f * (x * y + w * z),
-                                 2.0f * (x * z - w * y)};
-                const float len2 = side[0] * side[0] + side[1] * side[1] + side[2] * side[2];
-                if (len2 > 0.25f && len2 < 4.0f) {  /* reject a garbage quat */
-                    trans[0] += side[0] * offset;
-                    trans[1] += side[1] * offset;
-                    trans[2] += side[2] * offset;
-                    Logging.Log("[OCoop] PATCH-0001 B: P2 spawn offset %.0f -> (%.0f,%.0f,%.0f)",
-                                offset, trans[0], trans[1], trans[2]);
+            /* initPlayer receives a pointer to this buffer; keep one static
+             * buffer per slot so nothing it points at is reused. */
+            unsigned char* pii = patch0001::sPiiWork[slot];
+            for (unsigned i = 0; i < sizeof(patch0001::sPiiCopy); i++)
+                pii[i] = patch0001::sPiiCopy[i];
+            *(int*)(pii + 0x10) = port;
+
+            /* Spawn beside P1 instead of inside it. PlayerInitInfo holds the
+             * start pose as trans (Vector3f) at +0x28 and quat (x,y,z,w) at
+             * +0x34 (rs::initPlayerActorInfo reads exactly these; identical in
+             * 1.0.0 and 1.3.0). Shift along P1's local X axis = first
+             * rotation-matrix column, so the offset is sideways relative to
+             * P1's facing and respects non-default gravity. P2 +1, P3 -1, P4 +2. */
+            {
+                const float offset = ocoop::config::Get().p2SpawnOffset * kSpawnSide[slot];
+                if (offset != 0.0f) {
+                    float* trans = (float*)(pii + 0x28);
+                    const float* q = (const float*)(pii + 0x34);
+                    const float x = q[0], y = q[1], z = q[2], w = q[3];
+                    float side[3] = {1.0f - 2.0f * (y * y + z * z),
+                                     2.0f * (x * y + w * z),
+                                     2.0f * (x * z - w * y)};
+                    const float len2 = side[0] * side[0] + side[1] * side[1] + side[2] * side[2];
+                    if (len2 > 0.25f && len2 < 4.0f) {  /* reject a garbage quat */
+                        trans[0] += side[0] * offset;
+                        trans[1] += side[1] * offset;
+                        trans[2] += side[2] * offset;
+                        Logging.Log("[OCoop] PATCH-0001 B: P%d spawn offset %.0f -> (%.0f,%.0f,%.0f)",
+                                    slot + 1, offset, trans[0], trans[1], trans[2]);
+                    }
                 }
             }
-        }
 
 #if PATCH_0001_P2_COSTUME_ENABLED
-        /* Override P2's body/cap model names (PlayerInitInfo +0x18/+0x20).
-         * getInitPlayerModelName/getInitCapTypeName return these pointers
-         * verbatim; the init worker loads ObjectData/<name> on demand. The
-         * settings arrays live in this module's static storage, so the pointers
-         * stay valid for the whole synchronous init. Empty string = leave the
-         * corresponding P1 model pointer unchanged. */
-        {
-            const auto& settings = ocoop::config::Get();
-            if (settings.p2Body[0] != '\0')
-                *(const char**)(patch0001::sPiiCopy + 0x18) = settings.p2Body;
-            if (settings.p2Cap[0] != '\0')
-                *(const char**)(patch0001::sPiiCopy + 0x20) = settings.p2Cap;
-            Logging.Log("[OCoop] PATCH-0001 B: P2 costume body=\"%s\" cap=\"%s\"",
-                        *(const char**)(patch0001::sPiiCopy + 0x18),
-                        *(const char**)(patch0001::sPiiCopy + 0x20));
-        }
+            /* Override body/cap model names (PlayerInitInfo +0x18/+0x20).
+             * getInitPlayerModelName/getInitCapTypeName return these pointers
+             * verbatim; the init worker loads ObjectData/<name> on demand. The
+             * settings arrays live in this module's static storage, so the
+             * pointers stay valid for the whole synchronous init. Empty string
+             * = keep P1's model. */
+            {
+                const char* body = ocoop::config::PlayerBody(slot);
+                const char* cap = ocoop::config::PlayerCap(slot);
+                if (body[0] != '\0')
+                    *(const char**)(pii + 0x18) = body;
+                if (cap[0] != '\0')
+                    *(const char**)(pii + 0x20) = cap;
+                Logging.Log("[OCoop] PATCH-0001 B: P%d costume body=\"%s\" cap=\"%s\"",
+                            slot + 1, *(const char**)(pii + 0x18), *(const char**)(pii + 0x20));
+            }
 #endif
 
-        uintptr_t vt = *(uintptr_t*)p2;
-        if (!IsPtr8(vt)) {
-            Logging.Log("[OCoop] PATCH-0001 B: bad P2 vtable %p", (void*)vt);
-            return;
-        }
-        auto initPlayer = reinterpret_cast<void (*)(void*, const void*, const void*)>(
-            *(uintptr_t*)(vt + 0xe0));
-        initPlayer(p2, (const void*)patch0001::sActorInitInfo, patch0001::sPiiCopy);
-        Logging.Log("[OCoop] PATCH-0001 B: P2 initPlayer done");
+#if PATCH_0014_ENABLED
+            p2hud::SetPlayerColorFromCap(slot, *(const char* const*)(pii + 0x20));
+#endif
+            uintptr_t vt = *(uintptr_t*)actor;
+            if (!IsPtr8(vt)) {
+                Logging.Log("[OCoop] PATCH-0001 B: bad P%d vtable %p", slot + 1, (void*)vt);
+                break;
+            }
+            auto initPlayer = reinterpret_cast<void (*)(void*, const void*, const void*)>(
+                *(uintptr_t*)(vt + 0xe0));
+            initPlayer(actor, (const void*)patch0001::sActorInitInfo, pii);
+            Logging.Log("[OCoop] PATCH-0001 B: P%d initPlayer done", slot + 1);
 
-        void* keeper = createPadRumbleKeeper(p2, p2port);
-        registerPlayer(p2, keeper);
-        Logging.Log("[OCoop] PATCH-0001 B: P2 registered port=%d keeper=%p", p2port, keeper);
+            /* Real port for every player. P3/P4 ports lie beyond the boot-time
+             * vibration table; PATCH-0053's findPlayableVibrationPlayer guard
+             * makes rumble for them a no-op instead of an out-of-bounds read.
+             * (Port -1 is NOT usable: PadRumbleDirector::startRumble treats a
+             * negative port as "every player" and recurses through
+             * getPlayerPort, so a -1 keeper overflows the stack.) */
+            void* keeper = createPadRumbleKeeper(actor, port);
+            registerPlayer(actor, keeper);
+            Logging.Log("[OCoop] PATCH-0001 B: P%d registered port=%d keeper=%p", slot + 1, port, keeper);
+            extras[spawned++] = actor;
+        }
+        coop::sActivePlayers = spawned + 1;
+        if (spawned == 0)
+            return;
 #if PATCH_0019_ENABLED && PATCH_0014_ENABLED
         coinrace::ResetRound();
 #endif
 #if PATCH_0009_ENABLED
-        patch0009::ResetSceneHealthState(p2);
-        Logging.Log("[OCoop] PATCH-0009 p2 health initialized=%d max=%d",
-                    patch0009::sP2Health, patch0009::sP2MaxHealth);
+        patch0009::ResetSceneHealthState(extras, spawned);
+        for (int i = 1; i <= spawned; i++)
+            Logging.Log("[OCoop] PATCH-0009 p%d health initialized=%d max=%d",
+                        i + 1, patch0009::sHealth[i], patch0009::sMaxHealth[i]);
 #endif
-         
+        Logging.Log("[OCoop] PATCH-0001 B: co-op players active=%d (requested %d)",
+                    coop::sActivePlayers, wanted);
+#if PATCH_0054_ENABLED
+        entrance::BeginInitWindow();
+#endif
 
 #if PATCH_0005_ENABLED
         /* De-aggregate the pads: in single-play mode the first NpadController
-         * has index mode -1 (= reads ANY pad), so P2's controller also drove
-         * P1. changeMultiPlayMode(gps, 2, 2) pins pad i -> player i — the same
-         * call native 2P mode makes. gps = al::GamePadSystem* captured at
-         * PlayerInitInfo+0x00 (hook A); only reached when a second Npad exists
-         * (guards above), so solo play keeps vanilla any-pad input. */
+         * has index mode -1 (= reads ANY pad), so other controllers also drove
+         * P1. changeMultiPlayMode(gps, N, N) pins pad i -> player i for
+         * i < N - the same call native 2P mode makes (its loop handles any N).
+         * gps = al::GamePadSystem* captured at PlayerInitInfo+0x00 (hook A). */
         uintptr_t gps = *(uintptr_t*)(patch0001::sPiiCopy + 0x00);
         if (IsPtr8(gps)) {
             auto changeMultiPlayMode =
                 patch0001::fn<void (*)(void*, int, int)>(PatchOffsets::GamePadSystemChangeMultiPlayMode);
-            changeMultiPlayMode((void*)gps, 2, 2);
-            Logging.Log("[OCoop] PATCH-0005 multi-play pad mode set (gps=%p, pads pinned 0->P1, 1->P2)",
-                        (void*)gps);
+            const int n = coop::sActivePlayers;
+            changeMultiPlayMode((void*)gps, n, n);
+            if (n > 2) {
+                /* changeMultiPlayMode stores (n, n) at GamePadSystem+0/+4 and
+                 * pins NpadController i to index mode i for i < n. The pinning
+                 * lives on each controller and is what P3/P4 need. The counts
+                 * are also read by al::WaveVibrationHolder::update as its
+                 * usePadNum (+0xdc), and stopAll/pause/endPause then walk that
+                 * many vibration devices - which exist only for the original
+                 * pads (crash in WaveVibrationHolder::stopAll). Restore the
+                 * native two-player counts so every other consumer sees the
+                 * state it was built for. */
+                *(int*)(gps + 0x0) = 2;
+                *(int*)(gps + 0x4) = 2;
+            }
+            Logging.Log("[OCoop] PATCH-0005 multi-play pad mode set (gps=%p, pads pinned 0..%d -> P1..P%d)",
+                        (void*)gps, n - 1, n);
         } else {
             Logging.Log("[OCoop] PATCH-0005 bad GamePadSystem ptr %p, skip", (void*)gps);
         }
@@ -3645,9 +4447,9 @@ HOOK_DEFINE_TRAMPOLINE(Patch0002ForceRecovery) {
         }
 #endif
 
-        static uintptr_t sActors[2] = {0, 0};
-        static int sLast[2] = {-2, -2};
-        for (int i = 0; i < 2; i++) {
+        static uintptr_t sActors[coop::kMaxPlayers] = {};
+        static int sLast[coop::kMaxPlayers] = {-2, -2, -2, -2};
+        for (int i = 0; i < coop::kMaxPlayers; i++) {
             if (sActors[i] == 0)
                 sActors[i] = actor;
             if (sActors[i] == actor) {
@@ -3690,6 +4492,13 @@ HOOK_DEFINE_TRAMPOLINE(Patch0003RecoverToPartner) {
                     break;
                 }
             }
+#if PATCH_0009_ENABLED
+            {   /* 3+ players: recover toward the nearest live teammate, not slot order. */
+                void* nearestLive = patch0009::NearestLivePartner((void*)actor);
+                if (IsPtr8((uintptr_t)nearestLive))
+                    partner = nearestLive;
+            }
+#endif
 
             if (IsPtr8((uintptr_t)partner)) {
                 const float* pos = getTrans(partner);
@@ -3743,6 +4552,13 @@ HOOK_DEFINE_TRAMPOLINE(Patch0003ReassertDestination) {
                     else if (partner == nullptr)
                         partner = p;
                 }
+#if PATCH_0009_ENABLED
+                {   /* 3+ players: recover toward the nearest live teammate, not slot order. */
+                    void* nearestLive = patch0009::NearestLivePartner((void*)actor);
+                    if (IsPtr8((uintptr_t)nearestLive))
+                        partner = nearestLive;
+                }
+#endif
                 if (IsPtr8((uintptr_t)partner) && selfIdx >= 0 && selfIdx < 4) {
                     const float* pre = getSafetyPoint((void*)recovery);
                     const float* pos = getTrans(partner);
@@ -3823,6 +4639,13 @@ HOOK_DEFINE_TRAMPOLINE(Patch0044HoldBubblePopForSafePartner) {
             else if (partner == nullptr)
                 partner = p;
         }
+#if PATCH_0009_ENABLED
+        {   /* 3+ players: recover toward the nearest live teammate, not slot order. */
+            void* nearestLive = patch0009::NearestLivePartner((void*)actor);
+            if (IsPtr8((uintptr_t)nearestLive))
+                partner = nearestLive;
+        }
+#endif
         if (selfIdx < 0 || selfIdx >= 4 || !IsPtr8((uintptr_t)partner))
             return true;
 
@@ -3880,6 +4703,13 @@ HOOK_DEFINE_TRAMPOLINE(Patch0016ForceLandIn2D) {
             else if (partner == 0)
                 partner = (uintptr_t)p;
         }
+#if PATCH_0009_ENABLED
+        {   /* 3+ players: recover toward the nearest live teammate, not slot order. */
+            void* nearestLive = patch0009::NearestLivePartner((void*)actor);
+            if (IsPtr8((uintptr_t)nearestLive))
+                partner = (uintptr_t)nearestLive;
+        }
+#endif
         if (!IsPtr8(partner) || selfIdx < 0)
             return;
         uintptr_t dimSelf = *(uintptr_t*)(actor + 0x150);
@@ -4099,17 +4929,31 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
          * leaves non-player special cameras untouched. */
         bool trackedIsPlayer = false;
         void* partner = nullptr;
-        for (int i = 0; i < 4; i++) {
+        void* others[coop::kMaxPlayers] = {};
+        int otherCount = 0;
+        for (int i = 0; i < coop::kMaxPlayers; i++) {
             void* p = getPlayerActor((const void*)tracked, i);
             if (!IsPtr8((uintptr_t)p))
                 continue;
-            if ((uintptr_t)p == tracked)
+            if ((uintptr_t)p == tracked) {
                 trackedIsPlayer = true;
-            else if (partner == nullptr)
-                partner = p;
+            } else {
+                others[otherCount++] = p;
+                if (partner == nullptr)
+                    partner = p;
+            }
         }
         if (!trackedIsPlayer || !IsPtr8((uintptr_t)partner))
             return;
+#if PATCH_0009_ENABLED
+        /* With 3+ players the handoff/exclusion logic below runs against the
+         * nearest live teammate; the final framing uses every included player. */
+        if (otherCount > 1) {
+            void* nearest = patch0009::NearestLivePartner((void*)tracked);
+            if (IsPtr8((uintptr_t)nearest))
+                partner = nearest;
+        }
+#endif
 
         const float* tp = getTrans((const void*)tracked);
         const float* pp = getTrans((const void*)partner);
@@ -4126,8 +4970,7 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
          * PATCH-0041 keeps that P2 ownership through P1's outer NrvAbyss
          * recovery and releases it only when the actor exits the state. */
         const bool p1Tracked = patch0009::IsP1((void*)tracked);
-        const bool p2Live = patch0009::sP2HealthValid &&
-                            !patch0009::sP2Terminal;
+        const bool p2Live = patch0009::IsLiveExtraSlot(patch0009::SlotOf(partner));
         const bool p2IsPlayer = patch0009::IsP2(partner);
         bool p1Abyss = false;
         bool p2Abyss = false;
@@ -4143,13 +4986,14 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
         }
 #endif
         const bool terminalHandoff = p1Tracked && p2Live &&
-                                     patch0009::sP1Terminal;
+                                     patch0009::sTerminal[0];
         bool recoveryHandoff = false;
 #if PATCH_0045_ENABLED
         const bool forcedDistanceP1 =
             p1Tracked && p2Live && distancebubblecamera::Update(0, p1Abyss);
         const bool forcedDistanceP2 =
-            p2IsPlayer && distancebubblecamera::Update(1, p2Abyss);
+            p2IsPlayer &&
+            distancebubblecamera::Update(patch0009::SlotOf(partner), p2Abyss);
 #else
         const bool forcedDistanceP1 = false;
         const bool forcedDistanceP2 = false;
@@ -4161,7 +5005,7 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
          * return prevented the armed P2 bubble from ever reaching the later P2
          * exclusion block. Orig already produced P1's complete target. */
         const bool forcedDistanceP2Priority =
-            forcedDistanceP2 && p1Tracked && !patch0009::sP1Terminal &&
+            forcedDistanceP2 && p1Tracked && !patch0009::sTerminal[0] &&
             !p1Abyss;
         static bool loggedForcedDistanceP2Priority = false;
         if (forcedDistanceP2Priority) {
@@ -4189,7 +5033,7 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
         bool fallingHandoff = false;
         float belowPartner = 0.0f;
         float fallingSpeed = 0.0f;
-        if (p1Tracked && p2Live && !patch0009::sP1Terminal) {
+        if (p1Tracked && p2Live && !patch0009::sTerminal[0]) {
             auto isHitPointOne = OcoopFn<bool (*)(const void*)>(
                 PatchOffsets::PlayerFunctionIsPlayerHitPointOne);
             oneHeart = isHitPointOne((const void*)tracked);
@@ -4231,7 +5075,7 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
 #if OCOOP_DEV_DIAGNOSTICS
 #include "program/diagnostics_private/fragment_062.inc"
 #endif
-        if (!patch0009::sP1Terminal)
+        if (!patch0009::sTerminal[0])
             loggedTerminalHandoff = false;
 #if PATCH_0041_ENABLED
         if (recoveryHandoff && !loggedRecoveryHandoff) {
@@ -4283,15 +5127,15 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
          * to replace `out`: Orig already produced P1's complete target. Merely
          * skip midpoint composition and remove P2 from separation/zoom while
          * P2 is falling, terminal, or in the outer Abyss recovery state. */
-        const bool p1LiveForP2 = p1Tracked && !patch0009::sP1Terminal &&
+        const bool p1LiveForP2 = p1Tracked && !patch0009::sTerminal[0] &&
                                  !p1Abyss;
         const bool p2TerminalExclusion = p1LiveForP2 && p2IsPlayer &&
-                                          patch0009::sP2Terminal;
+                                          patch0009::IsTerminal(partner);
         const bool p2RecoveryExclusion = p1LiveForP2 && p2IsPlayer && p2Abyss;
         bool p2FallingExclusion = false;
         float p2BelowP1 = 0.0f;
         float p2FallingSpeed = 0.0f;
-        if (p1LiveForP2 && p2IsPlayer && !patch0009::sP2Terminal &&
+        if (p1LiveForP2 && p2IsPlayer && !patch0009::IsTerminal(partner) &&
             !p2Abyss) {
             auto getGravity = OcoopFn<const float* (*)(const void*)>(
                 PatchOffsets::AlGetGravity);
@@ -4325,7 +5169,7 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
 #if OCOOP_DEV_DIAGNOSTICS
 #include "program/diagnostics_private/fragment_063.inc"
 #endif
-        if (!patch0009::sP2Terminal)
+        if (!patch0009::IsTerminal(partner))
             loggedP2TerminalExclusion = false;
         if (p2RecoveryExclusion && !loggedP2RecoveryExclusion) {
             loggedP2RecoveryExclusion = true;
@@ -4337,7 +5181,8 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
                         (void*)tracked, partner);
         }
 
-        if (p2FallingExclusion || p2TerminalExclusion || p2RecoveryExclusion) {
+        if ((p2FallingExclusion || p2TerminalExclusion || p2RecoveryExclusion) &&
+            otherCount == 1) {
 #if PATCH_0008_ENABLED
             patch0008::ObserveHorizontalSeparation(0.0f, 0.0f);
 #endif
@@ -4363,10 +5208,45 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
 #endif
 #endif
 
-        float dx = (pp[0] - tp[0]) * 0.5f;
-        float dz = (pp[2] - tp[2]) * 0.5f;
-        out[0] += dx;   // x toward midpoint
-        out[2] += dz;   // z toward midpoint (y left as Orig set it)
+        /* Frame every included player: x/z centroid of the tracked player and
+         * each teammate that is not terminal or in Abyss recovery (with 3+
+         * players the excluded-partner branch above falls through to here so
+         * the remaining players still get framed). y left as Orig set it. */
+        float sumX = tp[0], sumZ = tp[2];
+        int included = 1;
+        float minX = tp[0], maxX = tp[0], minZ = tp[2], maxZ = tp[2];
+        {
+#if PATCH_0009_ENABLED
+            auto isNerveC = OcoopFn<bool (*)(const void*, const void*)>(PatchOffsets::AlIsNerve);
+            const void* nrvAbyssC = (const void*)exl::util::modules::GetTargetOffset(
+                PatchOffsets::NrvPlayerActorHakoniwaAbyss);
+#endif
+            for (int i = 0; i < otherCount; i++) {
+#if PATCH_0009_ENABLED
+                if (otherCount > 1 &&
+                    (patch0009::IsTerminal(others[i]) || isNerveC(others[i], nrvAbyssC)))
+                    continue;
+#endif
+#if PATCH_0042_ENABLED && PATCH_0038_ENABLED && PATCH_0009_ENABLED && PATCH_0010_ENABLED
+                if (otherCount > 1 && others[i] == partner && p2FallingExclusion)
+                    continue;
+#endif
+                const float* op = getTrans((const void*)others[i]);
+                if (op == nullptr)
+                    continue;
+                sumX += op[0];
+                sumZ += op[2];
+                included++;
+                if (op[0] < minX) minX = op[0];
+                if (op[0] > maxX) maxX = op[0];
+                if (op[2] < minZ) minZ = op[2];
+                if (op[2] > maxZ) maxZ = op[2];
+            }
+        }
+        float dx = sumX / (float)included - tp[0];
+        float dz = sumZ / (float)included - tp[2];
+        out[0] += dx;   // x toward the group centroid
+        out[2] += dz;   // z toward the group centroid
 #if OCOOP_DEV_DIAGNOSTICS
 #include "program/diagnostics_private/fragment_067.inc"
 #include "program/diagnostics_private/fragment_069.inc"
@@ -4377,7 +5257,9 @@ HOOK_DEFINE_TRAMPOLINE(Patch0004CoopCameraMidpoint) {
 #if PATCH_0008_ENABLED
         /* Feed only scalar, current-frame separation to the final-pose hook.
          * No actor pointer survives this callback. */
-        patch0008::ObserveHorizontalSeparation(pp[0] - tp[0], pp[2] - tp[2]);
+        /* Spread of the framed group (bounding-box diagonal on x/z). With two
+         * players this equals their separation. */
+        patch0008::ObserveHorizontalSeparation(maxX - minX, maxZ - minZ);
 #endif
 
         static unsigned calls = 0;
@@ -4405,22 +5287,34 @@ HOOK_DEFINE_TRAMPOLINE(Patch0025CameraStickP2) {
             return;
         auto tryGetPlayerActor =
             OcoopFn<void* (*)(const void*, int)>(PatchOffsets::AlTryGetPlayerActor);
-        uintptr_t p2 = (uintptr_t)tryGetPlayerActor(anchor, 1);
-        if (!IsPtr8(p2))
-            return;  /* solo play or P2 not registered: native behavior */
-        uintptr_t vt = *(uintptr_t*)p2;
-        if (!IsPtr8(vt))
-            return;
-        auto getPlayerInfo = *(void* (**)(uintptr_t))(vt + 0x1a8);
-        uintptr_t info = (uintptr_t)getPlayerInfo(p2);
-        if (!IsPtr8(info))
-            return;
-        uintptr_t input = *(uintptr_t*)(info + PatchOffsets::PlayerInfoInput);
-        if (!IsPtr8(input))
-            return;
         auto getStickCameraRaw =
             OcoopFn<const float* (*)(uintptr_t)>(PatchOffsets::PlayerInputGetStickCameraRaw);
-        const float* s2 = getStickCameraRaw(input);
+        /* Strongest camera stick among the extra players (P2..P4). */
+        const float* s2 = nullptr;
+        float bestM = -1.0f;
+        for (int slot = 1; slot < coop::kMaxPlayers; slot++) {
+            uintptr_t px = (uintptr_t)tryGetPlayerActor(anchor, slot);
+            if (!IsPtr8(px))
+                continue;  /* solo play or slot not registered */
+            uintptr_t vt = *(uintptr_t*)px;
+            if (!IsPtr8(vt))
+                continue;
+            auto getPlayerInfo = *(void* (**)(uintptr_t))(vt + 0x1a8);
+            uintptr_t info = (uintptr_t)getPlayerInfo(px);
+            if (!IsPtr8(info))
+                continue;
+            uintptr_t input = *(uintptr_t*)(info + PatchOffsets::PlayerInfoInput);
+            if (!IsPtr8(input))
+                continue;
+            const float* st = getStickCameraRaw(input);
+            if (st == nullptr)
+                continue;
+            const float m = st[0] * st[0] + st[1] * st[1];
+            if (m > bestM) {
+                bestM = m;
+                s2 = st;
+            }
+        }
         if (s2 == nullptr)
             return;
         float m1 = out[0] * out[0] + out[1] * out[1];
@@ -4577,6 +5471,15 @@ HOOK_DEFINE_TRAMPOLINE(Patch0006OutOfViewBubble) {
                 partnerIdx = i;
             }
         }
+#if PATCH_0009_ENABLED
+        {   /* 3+ players: bubble toward the nearest live teammate, not slot order. */
+            void* nearestLive = patch0009::NearestLivePartner((void*)player);
+            if (IsPtr8((uintptr_t)nearestLive)) {
+                partner = nearestLive;
+                partnerIdx = patch0009::SlotOf(nearestLive);
+            }
+        }
+#endif
 
         static unsigned sHold[4] = {0, 0, 0, 0};
         static unsigned sCooldown[4] = {0, 0, 0, 0};
@@ -4848,12 +5751,14 @@ HOOK_DEFINE_TRAMPOLINE(Patch0038P1SurvivorCameraStopArea) {
     static bool Callback(const void* self) {
         const bool stock = Orig(self);
         static bool loggedThisEpisode = false;
-        if (!patch0009::sP1Terminal) {
+        if (!patch0009::sTerminal[0]) {
             loggedThisEpisode = false;
             return stock;
         }
-        if (!stock || !patch0009::sP2HealthValid ||
-            patch0009::sP2Terminal || !IsPtr8((uintptr_t)self))
+        bool anyLiveExtra = false;
+        for (int i = 1; i < coop::sActivePlayers; i++)
+            anyLiveExtra = anyLiveExtra || patch0009::IsLiveExtraSlot(i);
+        if (!stock || !anyLiveExtra || !IsPtr8((uintptr_t)self))
             return stock;
 
         const unsigned char* judge = (const unsigned char*)self;
@@ -4879,8 +5784,9 @@ HOOK_DEFINE_TRAMPOLINE(Patch0038P1SurvivorCameraStopArea) {
  * non-P2 call retains the exact stock result. */
 HOOK_DEFINE_TRAMPOLINE(Patch0010P2DeadStatus) {
     static bool Callback(const void* actor) {
-        if (patch0009::IsP2((void*)actor))
-            return patch0009::sP2Terminal;
+        const int slot = patch0009::SlotOf((void*)actor);
+        if (slot >= 1)
+            return patch0009::sTerminal[slot];
         bool stock = Orig(actor);
         bool p1 = stock && patch0009::IsP1((void*)actor);
         if (p1)
@@ -4898,9 +5804,7 @@ HOOK_DEFINE_TRAMPOLINE(Patch0010P2DamageLifeDead) {
         uintptr_t actor = IsPtr8(self) ? *(uintptr_t*)(self + 0x18) : 0;
         uintptr_t animator = IsPtr8(self) ? *(uintptr_t*)(self + 0x38) : 0;
         bool animationEnded = false;
-        bool tracked = IsPtr8(actor) &&
-            ((patch0009::sP1Terminal && patch0009::IsP1((void*)actor)) ||
-             (patch0009::sP2Terminal && patch0009::IsP2((void*)actor)));
+        bool tracked = IsPtr8(actor) && patch0009::IsTerminal((void*)actor);
         if (tracked && IsPtr8(animator)) {
             auto isAnimEnd = OcoopFn<bool (*)(const void*)>(PatchOffsets::PlayerAnimatorIsAnimEnd);
             animationEnded = isAnimEnd((const void*)animator);
@@ -4928,15 +5832,15 @@ HOOK_DEFINE_TRAMPOLINE(Patch0033P2TerminalForceRecoveryToDamage) {
         Orig(actor, hackCap, carryKeeper, bindKeeper, equipUser, stateAbyss);
 
         if (callerNso != (uintptr_t)PatchOffsets::ForceRecoveryCliffReturn ||
-            !patch0009::sP2Terminal || !patch0009::IsP2(actor))
+            !patch0009::IsP2(actor) || !patch0009::IsTerminal(actor))
             return;
 
         auto setNerve = OcoopFn<void (*)(void*, const void*)>(PatchOffsets::AlSetNerve);
         const void* damageNerve = (const void*)exl::util::modules::GetTargetOffset(
             PatchOffsets::NrvPlayerActorHakoniwaDamage);
         setNerve(actor, damageNerve);
-        Logging.Log("[OCoop] PATCH-0033 p2 terminal producer Abyss->Damage caller_nso=0x%lx actor=%p hp=%d",
-                    (unsigned long)callerNso, actor, patch0009::sP2Health);
+        Logging.Log("[OCoop] PATCH-0033 p%d terminal producer Abyss->Damage caller_nso=0x%lx actor=%p",
+                    patch0009::SlotOf(actor) + 1, (unsigned long)callerNso, actor);
     }
 };
 #endif
@@ -5001,17 +5905,18 @@ HOOK_DEFINE_REPLACE(Patch0015TeamMissGate) {
         void* p2 = getPlayer(holder, 1);
         if (!IsPtr8((uintptr_t)p2))
             return p1Dead;
-        bool teamDead = p1Dead && patch0009::sP2Terminal;
+        /* Full miss only when P1 and every extra player are down. */
+        bool teamDead = p1Dead && patch0009::AllExtrasTerminal();
 
         static int lastGate = -1;
         int gate = !p1Dead ? 0 : (teamDead ? 2 : 1);
         if (gate != lastGate) {
             lastGate = gate;
             if (gate == 1) {
-                Logging.Log("[OCoop] PATCH-0015 full miss suppressed p1Down=1 p2Down=0 delaySeconds=%.2f",
+                Logging.Log("[OCoop] PATCH-0015 full miss suppressed p1Down=1 extrasDown=0 delaySeconds=%.2f",
                             ocoop::config::Get().respawnDelaySeconds);
             } else if (gate == 2) {
-                Logging.Log("[OCoop] PATCH-0015 full miss allowed p1Down=1 p2Down=1");
+                Logging.Log("[OCoop] PATCH-0015 full miss allowed p1Down=1 extrasDown=1");
             }
         }
         return teamDead;
@@ -5023,12 +5928,10 @@ HOOK_DEFINE_REPLACE(Patch0015TeamMissGate) {
 HOOK_DEFINE_TRAMPOLINE(Patch0009LifeMaxUpAcquire) {
     static void Callback(const void* actor) {
         Orig(actor);
-        const char* collector = patch0009::IsP2((void*)actor) ? "P2" :
-                                (patch0009::IsP1((void*)actor) ? "P1" : "other");
+        const int collector = patch0009::SlotOf((void*)actor);
         patch0009::GrantP2LifeUp();
-        Logging.Log("[OCoop] PATCH-0009 Life-Up broadcast collector=%s actor=%p p2hp=%d p2max=%d",
-                    collector, actor, patch0009::sP2Health,
-                    patch0009::sP2MaxHealth);
+        Logging.Log("[OCoop] PATCH-0009 Life-Up broadcast collector=P%d actor=%p",
+                    collector + 1, actor);
     }
 };
 #endif
@@ -5091,21 +5994,26 @@ HOOK_DEFINE_TRAMPOLINE(Patch0011P2AreaChangeStage) {
         void* playerHolder = getScenePlayerHolder(scene);
         if (!IsPtr8((uintptr_t)playerHolder))
             return ret;
-        void* p2 = getPlayerActorAt(playerHolder, 1);
-        if (!IsPtr8((uintptr_t)p2) || isDeadStatus(p2))
-            return ret;
-        if (!isInChangeStageArea(p2, nullptr))
-            return ret;
-        uintptr_t accessor = 0;
-        accessorCtor(&accessor, (void*)((uintptr_t)p2 + 0x20));
-        if (!IsPtr8(accessor))
-            return ret;
-        findAreaAndChange(accessor, p2, nullptr);
-        static unsigned n = 0;
-        if (n < 8) {
-            n++;
-            Logging.Log("[OCoop] PATCH-0011 p2 area-enter -> stage change requested (p2=%p flag=%d)",
-                        p2, (int)*(char*)(h + 0x49));
+        /* Extra players P2..Pn: the first one standing in a change-stage area
+         * requests the change, exactly like the native P1 branch. */
+        for (int slot = 1; slot < coop::sActivePlayers; slot++) {
+            void* px = getPlayerActorAt(playerHolder, slot);
+            if (!IsPtr8((uintptr_t)px) || isDeadStatus(px))
+                continue;
+            if (!isInChangeStageArea(px, nullptr))
+                continue;
+            uintptr_t accessor = 0;
+            accessorCtor(&accessor, (void*)((uintptr_t)px + 0x20));
+            if (!IsPtr8(accessor))
+                continue;
+            findAreaAndChange(accessor, px, nullptr);
+            static unsigned n = 0;
+            if (n < 8) {
+                n++;
+                Logging.Log("[OCoop] PATCH-0011 p%d area-enter -> stage change requested (actor=%p flag=%d)",
+                            slot + 1, px, (int)*(char*)(h + 0x49));
+            }
+            break;
         }
         return ret;
     }
@@ -5670,6 +6578,127 @@ HOOK_DEFINE_TRAMPOLINE(Patch0051CoalesceCompletedPausePreset) {
 #endif
 
 #if PATCH_0052_ENABLED
+namespace playercount {
+    // Context is valid only during the native pause menu's exeWait callback.
+    static void* sPauseContext = nullptr;
+    static void* sOwner = nullptr;
+    static void* sWindow = nullptr;
+    static bool sClosing = false;
+    static bool sAccepted = false;
+    static int sChosen = 2;
+    static int sPreviousListNum = 2;
+    static int sPreviousCancelIndex = 1;
+
+    static void ResetPicker() {
+        sOwner = sWindow = nullptr;
+        sClosing = sAccepted = false;
+        sChosen = 2;
+    }
+
+    /* Intercept only the decided co-op item while its native menu is waiting.
+     * Returning false keeps the menu in its decided state, so its ordinary
+     * update/draw lists continue animating the confirmation window.
+     * Return true once after acceptance to resume the native co-op flow. */
+    static bool FilterDecision(void* parts, bool decided) {
+        if (!sPauseContext || patch0052::IsTwoPlayer())
+            return decided;  // One Player keeps its normal behavior
+        if (sOwner && sOwner != sPauseContext)
+            ResetPicker();
+        if (!sWindow) {
+            if (!decided)
+                return false;
+            const uintptr_t pause = (uintptr_t)sPauseContext;
+            if (!IsPtr8(pause) || *(void**)(pause + 0x40) != parts)
+                return decided;
+            void* window = *(void**)(pause + PatchOffsets::PauseMenuWindowConfirm);
+            auto isDead = OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsDeadLayout);
+            if (!IsPtr8((uintptr_t)window) || !isDead(window))
+                return false;  // never overwrite another live confirmation
+            // Both builds use these WindowConfirm fields (appear / tryCancel).
+            sPreviousListNum = *(int*)((uintptr_t)window + 0x130);
+            sPreviousCancelIndex = *(int*)((uintptr_t)window + 0x138);
+            sOwner = sPauseContext;
+            sWindow = window;
+            sClosing = sAccepted = false;
+            auto setListNum = OcoopFn<void (*)(void*, int)>(PatchOffsets::WindowConfirmSetListNum);
+            auto setMessage = OcoopFn<void (*)(void*, const char16_t*)>(PatchOffsets::WindowConfirmSetTxtMessage);
+            auto setList = OcoopFn<void (*)(void*, int, const char16_t*)>(PatchOffsets::WindowConfirmSetTxtList);
+            setListNum(window, 3);
+            setMessage(window, u"How many players?");
+            setList(window, 0, u"2 Players");
+            setList(window, 1, u"3 Players");
+            setList(window, 2, u"4 Players");
+            OcoopFn<void (*)(void*)>(PatchOffsets::WindowConfirmAppear)(window);
+            Logging.Log("[OCoop] player-count chooser opened");
+            return false;  // don't reuse the A press that opened the chooser
+        }
+
+        if (sClosing) {
+            if (!OcoopFn<bool (*)(const void*)>(PatchOffsets::AlIsDeadLayout)(sWindow))
+                return false;
+            const bool accepted = sAccepted;
+            const int chosen = sChosen;
+            // WindowConfirm is shared with other pause-menu confirmations.
+            OcoopFn<void (*)(void*, int)>(PatchOffsets::WindowConfirmSetListNum)(
+                sWindow, sPreviousListNum);
+            *(int*)((uintptr_t)sWindow + 0x138) = sPreviousCancelIndex;
+            ResetPicker();
+            if (accepted) {
+                ocoop::config::SetSessionPlayerCount(chosen);
+                Logging.Log("[OCoop] player-count chooser accepted players=%d", chosen);
+                return true;
+            }
+            OcoopFn<void (*)(void*)>(PatchOffsets::MenuSelectAppearWait)(parts);
+            Logging.Log("[OCoop] player-count chooser canceled");
+            return false;
+        }
+
+        const void* holder = (const void*)((uintptr_t)sPauseContext + 0x18);
+        // The scene's IUseSceneObjHolder is at +0x20, not the pause menu's.
+        void* scene = *(void* const*)holder;
+        if (!IsPtr8((uintptr_t)scene))
+            return false;
+        holder = (const void*)((uintptr_t)scene + 0x20);
+        auto trigger = [&](ptrdiff_t offset) {
+            return OcoopFn<bool (*)(const void*)>(offset)(holder);
+        };
+        // tryUp/Down/Decide/Cancel apply the native animation/input debounce.
+        // isEnableInput also consumes that debounce, so don't call it first.
+        if (trigger(PatchOffsets::RsIsTriggerUiCancel)) {
+            if (OcoopFn<bool (*)(void*)>(PatchOffsets::WindowConfirmTryCancel)(sWindow)) {
+                sClosing = true;
+                sAccepted = false;
+            }
+        } else if (trigger(PatchOffsets::RsIsTriggerUiUp)) {
+            OcoopFn<bool (*)(void*)>(PatchOffsets::WindowConfirmTryUp)(sWindow);
+        } else if (trigger(PatchOffsets::RsIsTriggerUiDown)) {
+            OcoopFn<bool (*)(void*)>(PatchOffsets::WindowConfirmTryDown)(sWindow);
+        } else if (trigger(PatchOffsets::RsIsTriggerUiDecide)) {
+            const int index = *(int*)((uintptr_t)sWindow + 0x134);
+            if (index >= 0 && index < 3 &&
+                OcoopFn<bool (*)(void*)>(PatchOffsets::WindowConfirmTryDecide)(sWindow)) {
+                sChosen = index + 2;
+                sClosing = sAccepted = true;
+            }
+        }
+        return false;
+    }
+}
+
+HOOK_DEFINE_TRAMPOLINE(Patch0055PauseMenuCountContext) {
+    static void Callback(void* pause) {
+        playercount::sPauseContext = pause;
+        Orig(pause);
+        playercount::sPauseContext = nullptr;
+    }
+};
+
+HOOK_DEFINE_TRAMPOLINE(Patch0055ChoosePlayerCount) {
+    static bool Callback(void* parts) {
+        return playercount::FilterDecision(parts, Orig(parts));
+    }
+};
+
 HOOK_DEFINE_TRAMPOLINE(Patch0052PauseMenuPrivateMode) {
     static bool Callback(const void* sceneObjHolder) {
         const bool native = Orig(sceneObjHolder);
@@ -5769,11 +6798,156 @@ HOOK_DEFINE_TRAMPOLINE(Patch0052SequenceKillSceneForRestart) {
 };
 #endif
 
+/* PATCH-0053: controllers for players 3 and 4.
+ * al::GameFrameworkNx::createControllerMgr builds exactly two al::NpadController
+ * objects (1.0.0 loop `cmp w23,#2`; 1.3.0 unrolls it) and tells
+ * sead::NinJoyNpadDevice to poll only two Npad ids. al::getPlayerControllerPort(i)
+ * walks that controller list, so it returns -1 for i >= 2 no matter how many pads
+ * are connected. Raise the polled Npad count to the 4 PlayerHolder slots, then
+ * append NpadControllers 2 and 3 built exactly like the native loop body:
+ * index mode i, two JoyPadAccelerometerAddons, two PadGyroAddons, one
+ * PadUiKeyInputAddon, dual Joy-Con assignment, and push into
+ * sead::ControllerMgr::mControllers (+0x188 count, +0x18c capacity 16, +0x190
+ * data). Allocations use the game's malloc and live for the whole process,
+ * like the native controllers. */
+#define PATCH_0053_ENABLED 1
+
+#if PATCH_0053_ENABLED
+namespace patch0053 {
+    static void* sNpadDevice = nullptr;
+
+    static bool AddAddon(uintptr_t controller, void* addon) {
+        if (!IsPtr8((uintptr_t)addon))
+            return false;
+        /* Controller addon list: sead::OffsetList at +0x148, count +0x158,
+         * node offset +0x15c (same three fields the native loop updates). */
+        auto insertFront = OcoopFn<void (*)(void*, void*)>(PatchOffsets::SeadListNodeInsertFront);
+        const int nodeOffset = *(int*)(controller + 0x15c);
+        insertFront((void*)(controller + 0x148), (void*)((uintptr_t)addon + nodeOffset));
+        *(int*)(controller + 0x158) += 1;
+        return true;
+    }
+
+    static void AppendNpadController(uintptr_t mgr, int index) {
+        int count = *(int*)(mgr + 0x188);
+        const int capacity = *(int*)(mgr + 0x18c);
+        if (count >= capacity) {
+            Logging.Log("[OCoop] PATCH-0053 controller list full (%d/%d), npad %d skipped",
+                        count, capacity, index);
+            return;
+        }
+        void* controller = GameNew(0x198);
+        if (!IsPtr8((uintptr_t)controller))
+            return;
+        auto ctor = OcoopFn<void (*)(void*, void*)>(PatchOffsets::NpadControllerCtor);
+        auto setIndexMode = OcoopFn<void (*)(void*, int)>(PatchOffsets::NpadControllerSetIndexMode);
+        auto accelCtor = OcoopFn<void (*)(void*, void*, int)>(PatchOffsets::JoyPadAccelerometerAddonCtor);
+        auto gyroCtor = OcoopFn<void (*)(void*, void*, int)>(PatchOffsets::PadGyroAddonCtor);
+        auto uiKeyCtor = OcoopFn<void (*)(void*, void*)>(PatchOffsets::PadUiKeyInputAddonCtor);
+        ctor(controller, (void*)mgr);
+        setIndexMode(controller, index);
+
+        const uintptr_t c = (uintptr_t)controller;
+        for (int side = 0; side < 2; side++) {
+            void* accel = GameNew(0x40);
+            if (IsPtr8((uintptr_t)accel)) {
+                accelCtor(accel, controller, side);
+                AddAddon(c, accel);
+            }
+        }
+        for (int side = 0; side < 2; side++) {
+            void* gyro = GameNew(0x78);
+            if (IsPtr8((uintptr_t)gyro)) {
+                gyroCtor(gyro, controller, side);
+                AddAddon(c, gyro);
+            }
+        }
+        void* uiKey = GameNew(0x38);
+        if (IsPtr8((uintptr_t)uiKey)) {
+            uiKeyCtor(uiKey, controller);
+            AddAddon(c, uiKey);
+        }
+        if (IsPtr8((uintptr_t)sNpadDevice)) {
+            auto setDual = OcoopFn<void (*)(void*, int)>(PatchOffsets::NinJoyNpadDeviceSetAssignmentModeDual);
+            setDual(sNpadDevice, index);
+        }
+
+        count = *(int*)(mgr + 0x188);
+        (*(void***)(mgr + 0x190))[count] = controller;
+        *(int*)(mgr + 0x188) = count + 1;
+        Logging.Log("[OCoop] PATCH-0053 npad controller %d added at port %d controller=%p",
+                    index, count, controller);
+    }
+}
+
+HOOK_DEFINE_TRAMPOLINE(Patch0053NpadIdUpdateNum) {
+    static void Callback(void* device, unsigned num) {
+        patch0053::sNpadDevice = device;
+        if (num < (unsigned)coop::kMaxPlayers)
+            num = coop::kMaxPlayers;
+        Orig(device, num);
+    }
+};
+
+/* al::WaveVibrationHolder is built at boot with vibration slots for the
+ * original pads only; findPlayableVibrationPlayer(id) then indexes its table
+ * with no upper bound (crash in WaveVibrationPlayer::isPlaying for P3/P4's
+ * ports). The holder's own direct-value API bounds the same id against the
+ * count at +0x88 (startVibrationDirectValue / stopVibrationDirectValue in both
+ * 1.0.0 and 1.3.0), so apply that bound here. Every caller already handles a
+ * null result (PadRumbleDirector::startRumble* cbz checks). */
+HOOK_DEFINE_TRAMPOLINE(Patch0053VibrationPlayerBound) {
+    static void* Callback(const void* holder, int id) {
+        if (id >= 0 && IsPtr8((uintptr_t)holder) &&
+            id >= *(const int*)((uintptr_t)holder + 0x88)) {
+            static unsigned logged = 0;
+            if (logged < 4) {
+                ++logged;
+                Logging.Log("[OCoop] PATCH-0053 rumble skipped for port %d (vibration slots=%d)",
+                            id, *(const int*)((uintptr_t)holder + 0x88));
+            }
+            return nullptr;
+        }
+        return Orig(holder, id);
+    }
+};
+
+HOOK_DEFINE_TRAMPOLINE(Patch0053CreateControllerMgr) {
+    static void Callback(void* framework, void* task) {
+        Orig(framework, task);
+        const uintptr_t base = (uintptr_t)exl::util::modules::GetTargetOffset(0);
+        const uintptr_t slot = *(const uintptr_t*)(base + PatchOffsets::SeadControllerMgrInstanceGot);
+        const uintptr_t mgr = IsPtr8(slot) ? *(const uintptr_t*)slot : 0;
+        if (!IsPtr8(mgr)) {
+            Logging.Log("[OCoop] PATCH-0053 ControllerMgr missing slot=%p", (void*)slot);
+            return;
+        }
+        /* Native code made npad controllers 0 and 1; add the rest. */
+        for (int index = 2; index < coop::kMaxPlayers; index++)
+            patch0053::AppendNpadController(mgr, index);
+    }
+};
+#endif
+
 extern "C" void exl_main(void* x0, void* x1) {
     exl::hook::Initialize();
     exl::patch::impl::InitPatcherImpl();
     ocoop::diagnostics::Initialize();
     Logging.Log("[OCoop] init (OCoopMod, target 0100000000010000 " OCOOP_GAME_VERSION_STRING ")");
+#if PATCH_0053_ENABLED
+    Patch0053NpadIdUpdateNum::InstallAtOffset(PatchOffsets::NinJoyNpadDeviceSetNpadIdUpdateNum);
+    Patch0053CreateControllerMgr::InstallAtOffset(PatchOffsets::GameFrameworkCreateControllerMgr);
+    Patch0053VibrationPlayerBound::InstallAtOffset(PatchOffsets::WaveVibrationHolderFindPlayablePlayer);
+    Logging.Log("[OCoop] PATCH-0053 installed (4 npad controllers for up to 4 players)");
+#endif
+#if PATCH_0054_ENABLED
+    Patch0054DoorAction::InstallAtOffset(PatchOffsets::AlStartActorAction);
+    Patch0054RequestBindPlayer::InstallAtOffset(PatchOffsets::RsRequestBindPlayer);
+    Patch0054EndBindAndPuppetNull::InstallAtOffset(PatchOffsets::RsEndBindAndPuppetNull);
+    Patch0054EndBindOnGroundAndPuppetNull::InstallAtOffset(PatchOffsets::RsEndBindOnGroundAndPuppetNull);
+    Patch0054StartPlayerPuppet::InstallAtOffset(PatchOffsets::PlayerHakoniwaStartPlayerPuppet);
+    Logging.Log("[OCoop] PATCH-0054 installed (staggered stage entrances)");
+#endif
 
 #if OCOOP_DEV_DIAGNOSTICS
 #include "program/diagnostics_private/fragment_080.inc"
@@ -5802,6 +6976,9 @@ extern "C" void exl_main(void* x0, void* x1) {
 #endif
 
 #if PATCH_0052_ENABLED
+    Patch0055PauseMenuCountContext::InstallAtOffset(PatchOffsets::PauseMenuExeWait);
+    Patch0055ChoosePlayerCount::InstallAtOffset(PatchOffsets::MenuSelectIsDecideSeparatePlay);
+    Logging.Log("[OCoop] PATCH-0055 installed (native 2/3/4 player co-op chooser)");
     Patch0052PauseMenuPrivateMode::InstallAtOffset(
         PatchOffsets::RsIsSeparatePlay);
     Patch0052RequestModeAndRestart::InstallAtOffset(
@@ -5998,6 +7175,8 @@ extern "C" void exl_main(void* x0, void* x1) {
     Patch0014P2HudLayoutCtor::InstallAtOffset(PatchOffsets::StageSceneLayoutCtor);
     Patch0014P2HudLayoutEnd::InstallAtOffset(PatchOffsets::StageSceneLayoutEnd);
     Patch0014P2HudLayoutStart::InstallAtOffset(PatchOffsets::StageSceneLayoutStart);
+    Patch0014SyncLifeCounters::InstallAtOffset(PatchOffsets::StageSceneLayoutUpdateLifeCounter);
+    Patch0014PinLifeCounter::InstallAtOffset(PatchOffsets::CounterLifeCtrlCalcLayoutTransByPlayer);
     Logging.Log("[OCoop] PATCH-0014 v8 installed (P2 CounterLife HUD; demo-aware scene-layout end + isActiveDemo restore)");
 #endif
 #if OCOOP_DEV_DIAGNOSTICS
